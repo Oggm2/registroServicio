@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app import db
-from app.models import Servicio, PreRegistro
+from app.models import Servicio, PreRegistro, Estudiante, Carrera
 from app.middleware import role_required
 
 servicios_bp = Blueprint('servicios', __name__)
@@ -127,3 +127,26 @@ def update_cupo(id):
     servicio.cupo_maximo = int(cupo)
     db.session.commit()
     return jsonify({'message': 'Cupo actualizado'})
+
+
+@servicios_bp.route('/<int:id>/inscritos', methods=['GET'])
+@role_required('Admin', 'Becario')
+def get_inscritos(id):
+    Servicio.query.get_or_404(id)
+    inscritos = db.session.query(
+        Estudiante.nombre_completo,
+        Estudiante.matricula,
+        Carrera.abreviatura.label('carrera'),
+        PreRegistro.fecha_registro,
+    ).join(PreRegistro, PreRegistro.estudiante_id == Estudiante.id)\
+     .join(Carrera, Carrera.id == Estudiante.carrera_id)\
+     .filter(PreRegistro.servicio_id == id)\
+     .order_by(Estudiante.nombre_completo)\
+     .all()
+
+    return jsonify([{
+        'nombre_completo': i.nombre_completo,
+        'matricula': i.matricula,
+        'carrera': i.carrera,
+        'fecha_registro': i.fecha_registro.isoformat() if i.fecha_registro else None,
+    } for i in inscritos])

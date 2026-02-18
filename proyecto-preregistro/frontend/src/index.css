@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    SISTEMA DE PRE-REGISTRO — Design System
-   Tec de Monterrey: AzulTec + Carmesí + Verde
+   Tec de Monterrey: Azul Fuerte + Azul Claro + Blanco
    ═══════════════════════════════════════════ */
 
 :root {
@@ -12,17 +12,15 @@
   --azultec-500: #0056b8;
   --azultec-400: #3378c6;
   --azultec-300: #6699cc;
-
-  --carmesi-500: #C41230;
-  --carmesi-400: #d4364d;
-  --carmesi-300: #e06070;
-  --carmesi-600: #a00f28;
+  --azultec-200: #99bbdd;
+  --azultec-100: #cce0f0;
+  --azultec-50: #e8f1f9;
 
   --verde-500: #00843D;
   --verde-400: #2ca05a;
   --verde-600: #006b31;
 
-  /* ── Legacy aliases (keep CSS class compat) ── */
+  /* ── Aliases (all point to blue now) ── */
   --navy-900: var(--azultec-900);
   --navy-800: var(--azultec-800);
   --navy-700: var(--azultec-700);
@@ -31,10 +29,10 @@
   --navy-400: var(--azultec-400);
   --navy-300: var(--azultec-300);
 
-  --amber-500: var(--carmesi-500);
-  --amber-400: var(--carmesi-400);
-  --amber-300: var(--carmesi-300);
-  --amber-600: var(--carmesi-600);
+  --amber-500: var(--azultec-500);
+  --amber-400: var(--azultec-400);
+  --amber-300: var(--azultec-300);
+  --amber-600: var(--azultec-600);
 
   --teal-500: var(--verde-500);
   --teal-400: var(--verde-400);
@@ -67,9 +65,9 @@
   --text-muted: var(--gray-400);
   --text-inverse: var(--white);
 
-  --accent: var(--carmesi-500);
-  --accent-hover: var(--carmesi-600);
-  --accent-soft: rgba(196, 18, 48, 0.10);
+  --accent: var(--azultec-500);
+  --accent-hover: var(--azultec-600);
+  --accent-soft: rgba(0, 86, 184, 0.10);
 
   --success: var(--verde-500);
   --success-soft: rgba(0, 132, 61, 0.10);
@@ -82,7 +80,7 @@
   --border-strong: var(--gray-300);
   --sidebar-bg: var(--azultec-800);
   --sidebar-text: var(--azultec-300);
-  --sidebar-active: var(--carmesi-500);
+  --sidebar-active: var(--azultec-400);
 
   /* ── Typography ── */
   --font-display: 'Unbounded', system-ui, sans-serif;
@@ -109,7 +107,7 @@
   --shadow-md: 0 4px 16px rgba(0, 51, 102, 0.08);
   --shadow-lg: 0 8px 32px rgba(0, 51, 102, 0.1);
   --shadow-xl: 0 16px 48px rgba(0, 51, 102, 0.14);
-  --shadow-glow: 0 0 24px rgba(196, 18, 48, 0.2);
+  --shadow-glow: 0 0 24px rgba(0, 86, 184, 0.25);
 
   /* ── Transitions ── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -262,7 +260,7 @@ input, select, textarea, button {
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(196, 18, 48, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 0%, rgba(0, 86, 184, 0.06) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 100%, rgba(0, 132, 61, 0.04) 0%, transparent 60%);
   pointer-events: none;
 }
@@ -355,8 +353,8 @@ input, select, textarea, button {
 }
 
 .sidebar-link.active {
-  background: rgba(196, 18, 48, 0.1);
-  color: var(--carmesi-400);
+  background: rgba(0, 86, 184, 0.1);
+  color: var(--azultec-400);
 }
 
 .sidebar-link.active::before {
@@ -672,14 +670,14 @@ input, select, textarea, button {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--carmesi-500), var(--carmesi-600));
+  background: linear-gradient(135deg, var(--azultec-500), var(--azultec-700));
   color: var(--white);
-  box-shadow: 0 2px 8px rgba(196, 18, 48, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 86, 184, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(196, 18, 48, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 86, 184, 0.35);
 }
 
 .btn-secondary {
@@ -793,14 +791,22 @@ input, select, textarea, button {
   font-size: 0.75rem;
   color: var(--red-500);
   margin-top: 4px;
+  animation: formErrorIn 0.25s var(--ease-out);
 }
 
-.form-input.invalid {
+@keyframes formErrorIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-input.invalid,
+.form-select.invalid {
   border-color: var(--red-500);
   box-shadow: 0 0 0 3px var(--danger-soft);
 }
 
-.form-input.error {
+.form-input.error,
+.form-select.error {
   border-color: var(--red-500);
   box-shadow: 0 0 0 3px var(--danger-soft);
 }
@@ -1027,7 +1033,7 @@ input, select, textarea, button {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 30% 20%, rgba(196, 18, 48, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 20%, rgba(0, 86, 184, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 80%, rgba(0, 132, 61, 0.05) 0%, transparent 50%);
   pointer-events: none;
 }
@@ -1103,11 +1109,11 @@ input, select, textarea, button {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: rgba(196, 18, 48, 0.1);
+  background: rgba(0, 86, 184, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--carmesi-400);
+  color: var(--azultec-400);
   font-size: 1rem;
   flex-shrink: 0;
 }
@@ -1234,7 +1240,7 @@ input, select, textarea, button {
   width: 36px;
   height: 36px;
   border: 3px solid var(--border);
-  border-top-color: var(--carmesi-500);
+  border-top-color: var(--azultec-500);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

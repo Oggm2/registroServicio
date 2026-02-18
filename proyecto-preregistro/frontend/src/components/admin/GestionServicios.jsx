@@ -8,6 +8,7 @@ import {
   HiOutlineTrash,
   HiOutlineXMark,
   HiOutlineMagnifyingGlass,
+  HiOutlineUserGroup,
 } from 'react-icons/hi2'
 
 const INITIAL_FORM = { descripcion: '', crn: '', periodo: '', cupo_maximo: '', socio_formador_id: '' }
@@ -21,6 +22,9 @@ export default function GestionServicios() {
   const [editId, setEditId] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [socios, setSocios] = useState([])
+  const [inscritosModal, setInscritosModal] = useState(null)
+  const [inscritosList, setInscritosList] = useState([])
+  const [inscritosLoading, setInscritosLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState(null)
   const [search, setSearch] = useState('')
@@ -28,6 +32,20 @@ export default function GestionServicios() {
 
   useEffect(() => { loadSocios() }, [])
   useEffect(() => { loadServicios() }, [page])
+
+  const openInscritos = async (servicio) => {
+    setInscritosModal(servicio)
+    setInscritosLoading(true)
+    try {
+      const { data } = await serviciosAPI.getInscritos(servicio.id)
+      setInscritosList(data)
+    } catch (err) {
+      console.error('Error al cargar inscritos:', err)
+      toast.error('Error al cargar inscritos')
+    } finally {
+      setInscritosLoading(false)
+    }
+  }
 
   const loadSocios = async () => {
     try {
@@ -87,7 +105,7 @@ export default function GestionServicios() {
       if (modal === 'create') { await serviciosAPI.create(payload); toast.success('Servicio creado') }
       else { await serviciosAPI.update(editId, payload); toast.success('Servicio actualizado') }
       setModal(null); loadServicios()
-    } catch (err) { toast.error(err.response?.data?.error || 'Error al guardar') }
+    } catch (err) { console.error('Error al guardar servicio:', err); toast.error(err.response?.data?.error || 'Error al guardar') }
     finally { setSubmitting(false) }
   }
 
@@ -150,7 +168,15 @@ export default function GestionServicios() {
                         onBlur={(e) => { if (e.target.value !== s.cupo_maximo?.toString()) handleCupoChange(s.id, e.target.value) }}
                         onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur() }} min={0} />
                     </td>
-                    <td data-label="Inscritos">{s.inscritos || 0}</td>
+                    <td data-label="Inscritos">
+                      {(s.inscritos || 0) > 0 ? (
+                        <button className="btn btn-outline btn-sm" onClick={() => openInscritos(s)} style={{ gap: 4 }}>
+                          <HiOutlineUserGroup /> {s.inscritos}
+                        </button>
+                      ) : (
+                        <span className="text-muted">0</span>
+                      )}
+                    </td>
                     <td data-label="Acciones">
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn btn-outline btn-sm btn-icon" onClick={() => openEdit(s)} title="Editar"><HiOutlinePencilSquare /></button>
@@ -173,6 +199,48 @@ export default function GestionServicios() {
             </div>
           )}
         </>
+      )}
+
+      {inscritosModal && (
+        <div className="modal-overlay" onClick={() => setInscritosModal(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600 }}>
+            <div className="modal-header">
+              <h2>Inscritos — {inscritosModal.crn}</h2>
+              <button className="modal-close" onClick={() => setInscritosModal(null)}><HiOutlineXMark /></button>
+            </div>
+            <div className="modal-body">
+              {inscritosLoading ? (
+                <div className="loading-spinner"><div className="spinner" /></div>
+              ) : inscritosList.length === 0 ? (
+                <p className="text-muted text-center">No hay inscritos</p>
+              ) : (
+                <table className="table" style={{ fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nombre</th>
+                      <th>Matrícula</th>
+                      <th>Carrera</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inscritosList.map((est, idx) => (
+                      <tr key={idx}>
+                        <td className="text-muted">{idx + 1}</td>
+                        <td style={{ fontWeight: 500 }}>{est.nombre_completo}</td>
+                        <td><span className="badge badge-navy">{est.matricula}</span></td>
+                        <td className="text-muted">{est.carrera}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setInscritosModal(null)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {modal && (

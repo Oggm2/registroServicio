@@ -17,7 +17,7 @@ import {
   HiOutlineBuildingOffice2,
   HiOutlineUserGroup,
   HiOutlineUserCircle,
-  HiOutlineLockClosed,
+  HiOutlineKey,
   HiOutlineXMark,
 } from 'react-icons/hi2'
 import { authAPI } from '../../services/api'
@@ -142,7 +142,7 @@ export default function Sidebar({ open, onClose }) {
               <div className="sidebar-user-role">{user?.rol}</div>
             </div>
             <button className="sidebar-logout" onClick={() => { setPwForm({ current_password: '', new_password: '', confirm: '' }); setPwModal(true) }} title="Cambiar contraseña" style={{ marginLeft: 0 }}>
-              <HiOutlineLockClosed />
+              <HiOutlineKey />
             </button>
             <button className="sidebar-logout" onClick={logout} title="Cerrar sesión">
               <HiOutlineArrowRightOnRectangle />

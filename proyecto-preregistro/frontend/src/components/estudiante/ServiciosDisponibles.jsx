@@ -15,7 +15,7 @@ export default function ServiciosDisponibles() {
   const loadServicios = async () => {
     try {
       const { data } = await serviciosAPI.getAll()
-      setServicios(data)
+      setServicios(data.data || data)
     } catch {
       toast.error('Error al cargar servicios')
     } finally {
