@@ -51,6 +51,7 @@ export const serviciosAPI = {
   update: (id, data) => api.put(`/servicios/${id}`, data),
   delete: (id) => api.delete(`/servicios/${id}`),
   updateCupo: (id, cupo) => api.put(`/servicios/${id}/cupo`, { cupo_maximo: cupo }),
+  getInscritos: (id) => api.get(`/servicios/${id}/inscritos`),
 }
 
 // ── Pre-registros ──

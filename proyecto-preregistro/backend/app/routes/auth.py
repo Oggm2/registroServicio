@@ -160,8 +160,9 @@ def forgot_password():
             <p>Si no solicitaste este cambio, ignora este correo.</p>
             """
             mail.send(msg)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f'Error al enviar correo: {e}')
 
     return jsonify({'message': 'Si el correo existe, recibirás un enlace de recuperación'}), 200
 

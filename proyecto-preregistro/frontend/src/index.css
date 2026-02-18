@@ -791,14 +791,22 @@ input, select, textarea, button {
   font-size: 0.75rem;
   color: var(--red-500);
   margin-top: 4px;
+  animation: formErrorIn 0.25s var(--ease-out);
 }
 
-.form-input.invalid {
+@keyframes formErrorIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-input.invalid,
+.form-select.invalid {
   border-color: var(--red-500);
   box-shadow: 0 0 0 3px var(--danger-soft);
 }
 
-.form-input.error {
+.form-input.error,
+.form-select.error {
   border-color: var(--red-500);
   box-shadow: 0 0 0 3px var(--danger-soft);
 }

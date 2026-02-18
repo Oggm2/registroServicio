@@ -147,7 +147,7 @@ export default function Register() {
                     <label className="form-label">Carrera *</label>
                     <select className={`form-select ${errors.carrera_id ? 'invalid' : ''}`} value={form.carrera_id} onChange={set('carrera_id')}>
                       <option value="">Selecciona...</option>
-                      {carreras.map(c => (<option key={c.id} value={c.id}>{c.nombre}</option>))}
+                      {carreras.map(c => (<option key={c.id} value={c.id}>{c.abreviatura} — {c.nombre}</option>))}
                     </select>
                     {errors.carrera_id && <div className="form-error">{errors.carrera_id}</div>}
                   </div>
