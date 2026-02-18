@@ -7,20 +7,48 @@ from app.middleware import role_required
 servicios_bp = Blueprint('servicios', __name__)
 
 
+def paginate_query(query, page=1, per_page=20):
+    page = max(1, int(page))
+    paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+    return paginated.items, {
+        'page': paginated.page,
+        'per_page': paginated.per_page,
+        'total': paginated.total,
+        'pages': paginated.pages,
+    }
+
+
 @servicios_bp.route('', methods=['GET'])
 @jwt_required()
 def get_servicios():
-    servicios = Servicio.query.order_by(Servicio.periodo.desc(), Servicio.descripcion).all()
-    return jsonify([{
-        'id': s.id,
-        'descripcion': s.descripcion,
-        'crn': s.crn,
-        'periodo': s.periodo,
-        'cupo_maximo': s.cupo_maximo,
-        'inscritos': PreRegistro.query.filter_by(servicio_id=s.id).count(),
-        'socio_formador_id': s.socio_formador_id,
-        'socio_formador_nombre': s.socio_formador.nombre if s.socio_formador else None,
-    } for s in servicios])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    q = request.args.get('q', '').strip()
+
+    query = Servicio.query.order_by(Servicio.periodo.desc(), Servicio.descripcion)
+    if q:
+        query = query.filter(
+            db.or_(
+                Servicio.descripcion.ilike(f'%{q}%'),
+                Servicio.crn.ilike(f'%{q}%'),
+                Servicio.periodo.ilike(f'%{q}%'),
+            )
+        )
+
+    items, pagination = paginate_query(query, page, per_page)
+    return jsonify({
+        'data': [{
+            'id': s.id,
+            'descripcion': s.descripcion,
+            'crn': s.crn,
+            'periodo': s.periodo,
+            'cupo_maximo': s.cupo_maximo,
+            'inscritos': PreRegistro.query.filter_by(servicio_id=s.id).count(),
+            'socio_formador_id': s.socio_formador_id,
+            'socio_formador_nombre': s.socio_formador.nombre if s.socio_formador else None,
+        } for s in items],
+        'pagination': pagination,
+    })
 
 
 @servicios_bp.route('', methods=['POST'])

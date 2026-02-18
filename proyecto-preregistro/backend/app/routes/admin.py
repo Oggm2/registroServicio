@@ -9,9 +9,22 @@ import bcrypt
 admin_bp = Blueprint('admin', __name__)
 
 
+def paginate_query(query, page=1, per_page=20):
+    page = max(1, int(page))
+    paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+    return paginated.items, {
+        'page': paginated.page,
+        'per_page': paginated.per_page,
+        'total': paginated.total,
+        'pages': paginated.pages,
+    }
+
+
 @admin_bp.route('/dashboard/stats', methods=['GET'])
 @role_required('Admin')
 def get_stats():
+    periodo = request.args.get('periodo')
+
     total_registrados = Estudiante.query.count()
     total_asistencias = AsistenciaFeria.query.count()
     total_preregistros = PreRegistro.query.count()
@@ -24,48 +37,80 @@ def get_stats():
     ).group_by(AsistenciaFeria.horario_seleccionado).all()
 
     # Ocupación por periodo
-    ocupacion_periodo = db.session.query(
+    ocupacion_q = db.session.query(
         Servicio.periodo,
         db.func.sum(Servicio.cupo_maximo).label('cupo_total'),
         db.func.count(PreRegistro.id).label('inscritos_total')
-    ).outerjoin(PreRegistro)\
-     .group_by(Servicio.periodo)\
-     .order_by(Servicio.periodo)\
-     .all()
+    ).outerjoin(PreRegistro)
+    if periodo:
+        ocupacion_q = ocupacion_q.filter(Servicio.periodo == periodo)
+    ocupacion_periodo = ocupacion_q.group_by(Servicio.periodo)\
+        .order_by(Servicio.periodo).all()
 
     # Asistentes dentro ahora
     asistentes_dentro = AsistenciaFeria.query.filter_by(estatus_asistencia='dentro').count()
 
     # Proyectos más solicitados
-    proyectos_top = db.session.query(
+    proyectos_q = db.session.query(
         Servicio.descripcion,
         Servicio.cupo_maximo,
         db.func.count(PreRegistro.id).label('inscritos')
-    ).outerjoin(PreRegistro)\
-     .group_by(Servicio.id, Servicio.descripcion, Servicio.cupo_maximo)\
-     .order_by(db.func.count(PreRegistro.id).desc())\
-     .limit(10).all()
+    ).outerjoin(PreRegistro)
+    if periodo:
+        proyectos_q = proyectos_q.filter(Servicio.periodo == periodo)
+    proyectos_top = proyectos_q.group_by(Servicio.id, Servicio.descripcion, Servicio.cupo_maximo)\
+        .order_by(db.func.count(PreRegistro.id).desc()).limit(10).all()
 
     # Cupos disponibles
-    cupos = db.session.query(
+    cupos_q = db.session.query(
         Servicio.id,
         Servicio.descripcion,
         Servicio.crn,
         Servicio.cupo_maximo,
         db.func.count(PreRegistro.id).label('inscritos')
-    ).outerjoin(PreRegistro)\
-     .group_by(Servicio.id, Servicio.descripcion, Servicio.crn, Servicio.cupo_maximo)\
-     .all()
+    ).outerjoin(PreRegistro)
+    if periodo:
+        cupos_q = cupos_q.filter(Servicio.periodo == periodo)
+    cupos = cupos_q.group_by(Servicio.id, Servicio.descripcion, Servicio.crn, Servicio.cupo_maximo).all()
 
     # Inscritos por Socio Formador
-    stats_sf = db.session.query(
+    stats_sf_q = db.session.query(
         SocioFormador.nombre,
         db.func.count(PreRegistro.id).label('total_inscritos')
     ).join(Servicio, Servicio.socio_formador_id == SocioFormador.id)\
-     .join(PreRegistro, PreRegistro.servicio_id == Servicio.id)\
-     .group_by(SocioFormador.nombre)\
-     .order_by(db.func.count(PreRegistro.id).desc())\
-     .all()
+     .join(PreRegistro, PreRegistro.servicio_id == Servicio.id)
+    if periodo:
+        stats_sf_q = stats_sf_q.filter(Servicio.periodo == periodo)
+    stats_sf = stats_sf_q.group_by(SocioFormador.nombre)\
+        .order_by(db.func.count(PreRegistro.id).desc()).all()
+
+    # --- Nuevas estadísticas ---
+
+    # Tasa de no-asistencia
+    no_asistieron = AsistenciaFeria.query.filter_by(estatus_asistencia='no_asistió').count()
+    tasa_no_asistencia = round((no_asistieron / total_asistencias) * 100, 1) if total_asistencias > 0 else 0
+
+    # Pre-registros por carrera
+    preregistros_carrera = db.session.query(
+        Carrera.abreviatura, Carrera.nombre, db.func.count(PreRegistro.id)
+    ).join(Estudiante, Estudiante.carrera_id == Carrera.id)\
+     .join(PreRegistro, PreRegistro.estudiante_id == Estudiante.id)\
+     .group_by(Carrera.id, Carrera.abreviatura, Carrera.nombre)\
+     .order_by(db.func.count(PreRegistro.id).desc()).all()
+
+    # Tendencia de inscripciones por día
+    tendencia = db.session.query(
+        db.func.date(PreRegistro.fecha_registro), db.func.count(PreRegistro.id)
+    ).group_by(db.func.date(PreRegistro.fecha_registro))\
+     .order_by(db.func.date(PreRegistro.fecha_registro)).all()
+
+    # Distribución de estatus de asistencia
+    estatus_dist = db.session.query(
+        AsistenciaFeria.estatus_asistencia, db.func.count(AsistenciaFeria.id)
+    ).group_by(AsistenciaFeria.estatus_asistencia).all()
+
+    # Periodos disponibles
+    periodos_disponibles = [p[0] for p in db.session.query(Servicio.periodo).distinct().order_by(Servicio.periodo).all()]
 
     return jsonify({
         'total_registrados': total_registrados,
@@ -101,6 +146,19 @@ def get_stats():
             {'socio_formador': nombre, 'total': total}
             for nombre, total in stats_sf
         ],
+        'tasa_no_asistencia': tasa_no_asistencia,
+        'no_asistieron': no_asistieron,
+        'preregistros_por_carrera': [
+            {'carrera': abr, 'nombre': nom, 'total': t}
+            for abr, nom, t in preregistros_carrera
+        ],
+        'tendencia_inscripciones': [
+            {'fecha': str(f), 'total': t} for f, t in tendencia
+        ],
+        'estatus_distribucion': [
+            {'estatus': e, 'total': t} for e, t in estatus_dist
+        ],
+        'periodos_disponibles': periodos_disponibles,
     })
 
 
@@ -108,7 +166,7 @@ def get_stats():
 @role_required('Admin')
 def reporte_estudiantes():
     formato = request.args.get('formato', 'csv')
-    estudiantes = Estudiante.query.join(Carrera).order_by(Estudiante.nombre_completo).all()
+    estudiantes = Estudiante.query.join(Carrera).join(Usuario).order_by(Estudiante.nombre_completo).all()
 
     if formato == 'excel':
         try:
@@ -240,17 +298,34 @@ def reset_user_password(id):
 @admin_bp.route('/admin/estudiantes', methods=['GET'])
 @role_required('Admin')
 def get_estudiantes():
-    estudiantes = Estudiante.query.join(Carrera).join(Usuario).order_by(Estudiante.nombre_completo).all()
-    return jsonify([{
-        'id': e.id,
-        'nombre_completo': e.nombre_completo,
-        'matricula': e.matricula,
-        'carrera': e.carrera.nombre if e.carrera else '',
-        'celular': e.celular or '',
-        'correo_alterno': e.correo_alterno or '',
-        'username': e.usuario.username if e.usuario else '',
-        'usuario_id': e.usuario_id,
-    } for e in estudiantes])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    q = request.args.get('q', '').strip()
+
+    query = Estudiante.query.join(Carrera).join(Usuario).order_by(Estudiante.nombre_completo)
+    if q:
+        query = query.filter(
+            db.or_(
+                Estudiante.nombre_completo.ilike(f'%{q}%'),
+                Estudiante.matricula.ilike(f'%{q}%'),
+                Usuario.username.ilike(f'%{q}%'),
+            )
+        )
+
+    items, pagination = paginate_query(query, page, per_page)
+    return jsonify({
+        'data': [{
+            'id': e.id,
+            'nombre_completo': e.nombre_completo,
+            'matricula': e.matricula,
+            'carrera': e.carrera.nombre if e.carrera else '',
+            'celular': e.celular or '',
+            'correo_alterno': e.correo_alterno or '',
+            'username': e.usuario.username if e.usuario else '',
+            'usuario_id': e.usuario_id,
+        } for e in items],
+        'pagination': pagination,
+    })
 
 
 @admin_bp.route('/admin/estudiantes', methods=['POST'])
@@ -322,11 +397,15 @@ def delete_estudiante(id):
 @admin_bp.route('/admin/becarios', methods=['GET'])
 @role_required('Admin')
 def get_becarios():
-    becarios = Usuario.query.filter_by(rol='Becario').order_by(Usuario.username).all()
-    return jsonify([{
-        'id': u.id,
-        'username': u.username,
-    } for u in becarios])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+
+    query = Usuario.query.filter_by(rol='Becario').order_by(Usuario.username)
+    items, pagination = paginate_query(query, page, per_page)
+    return jsonify({
+        'data': [{'id': u.id, 'username': u.username} for u in items],
+        'pagination': pagination,
+    })
 
 
 @admin_bp.route('/admin/becarios', methods=['POST'])

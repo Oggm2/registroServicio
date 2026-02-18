@@ -6,11 +6,29 @@ from app.middleware import role_required
 socios_bp = Blueprint('socios_formadores', __name__)
 
 
+def paginate_query(query, page=1, per_page=20):
+    page = max(1, int(page))
+    paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+    return paginated.items, {
+        'page': paginated.page,
+        'per_page': paginated.per_page,
+        'total': paginated.total,
+        'pages': paginated.pages,
+    }
+
+
 @socios_bp.route('', methods=['GET'])
 @role_required('Admin')
 def get_socios():
-    socios = SocioFormador.query.order_by(SocioFormador.nombre).all()
-    return jsonify([{'id': s.id, 'nombre': s.nombre} for s in socios])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+
+    query = SocioFormador.query.order_by(SocioFormador.nombre)
+    items, pagination = paginate_query(query, page, per_page)
+    return jsonify({
+        'data': [{'id': s.id, 'nombre': s.nombre} for s in items],
+        'pagination': pagination,
+    })
 
 
 @socios_bp.route('', methods=['POST'])

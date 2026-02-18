@@ -70,7 +70,7 @@ export const asistenciasAPI = {
 
 // ── Gestión Estudiantes (Admin) ──
 export const gestionEstudiantesAPI = {
-  getAll: () => api.get('/admin/estudiantes'),
+  getAll: (params) => api.get('/admin/estudiantes', { params }),
   create: (data) => api.post('/admin/estudiantes', data),
   delete: (id) => api.delete(`/admin/estudiantes/${id}`),
   resetPassword: (id, data) => api.put(`/admin/usuarios/${id}/reset-password`, data),
@@ -78,14 +78,14 @@ export const gestionEstudiantesAPI = {
 
 // ── Gestión Becarios (Admin) ──
 export const gestionBecariosAPI = {
-  getAll: () => api.get('/admin/becarios'),
+  getAll: (params) => api.get('/admin/becarios', { params }),
   create: (data) => api.post('/admin/becarios', data),
   delete: (id) => api.delete(`/admin/becarios/${id}`),
 }
 
 // ── Socios Formadores ──
 export const sociosFormadoresAPI = {
-  getAll: () => api.get('/socios-formadores'),
+  getAll: (params) => api.get('/socios-formadores', { params }),
   create: (data) => api.post('/socios-formadores', data),
   update: (id, data) => api.put(`/socios-formadores/${id}`, data),
   delete: (id) => api.delete(`/socios-formadores/${id}`),

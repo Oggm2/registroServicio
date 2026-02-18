@@ -7,30 +7,58 @@ from app.middleware import role_required
 preregistros_bp = Blueprint('preregistros', __name__)
 
 
+def paginate_query(query, page=1, per_page=20):
+    page = max(1, int(page))
+    paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+    return paginated.items, {
+        'page': paginated.page,
+        'per_page': paginated.per_page,
+        'total': paginated.total,
+        'pages': paginated.pages,
+    }
+
+
 @preregistros_bp.route('', methods=['GET'])
 @role_required('Becario', 'Admin')
 def get_preregistros():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+
     query = PreRegistro.query.join(Estudiante).join(Servicio).join(Carrera)
 
     periodo = request.args.get('periodo')
     carrera = request.args.get('carrera')
+    q = request.args.get('q', '').strip()
     if periodo:
         query = query.filter(Servicio.periodo == periodo)
     if carrera:
         query = query.filter(Carrera.nombre.ilike(f'%{carrera}%'))
+    if q:
+        query = query.filter(
+            db.or_(
+                Estudiante.nombre_completo.ilike(f'%{q}%'),
+                Estudiante.matricula.ilike(f'%{q}%'),
+                Servicio.crn.ilike(f'%{q}%'),
+                Servicio.descripcion.ilike(f'%{q}%'),
+            )
+        )
 
-    registros = query.order_by(PreRegistro.fecha_registro.desc()).all()
+    query = query.order_by(PreRegistro.fecha_registro.desc())
+    items, pagination = paginate_query(query, page, per_page)
 
-    return jsonify([{
-        'id': r.id,
-        'estudiante_nombre': r.estudiante.nombre_completo,
-        'matricula': r.estudiante.matricula,
-        'carrera': r.estudiante.carrera.nombre if r.estudiante.carrera else None,
-        'crn': r.servicio.crn,
-        'servicio_descripcion': r.servicio.descripcion,
-        'periodo': r.servicio.periodo,
-        'fecha_registro': r.fecha_registro.isoformat() if r.fecha_registro else None,
-    } for r in registros])
+    return jsonify({
+        'data': [{
+            'id': r.id,
+            'estudiante_nombre': r.estudiante.nombre_completo,
+            'matricula': r.estudiante.matricula,
+            'carrera': r.estudiante.carrera.nombre if r.estudiante.carrera else None,
+            'crn': r.servicio.crn,
+            'servicio_descripcion': r.servicio.descripcion,
+            'periodo': r.servicio.periodo,
+            'fecha_registro': r.fecha_registro.isoformat() if r.fecha_registro else None,
+        } for r in items],
+        'pagination': pagination,
+    })
 
 
 @preregistros_bp.route('', methods=['POST'])

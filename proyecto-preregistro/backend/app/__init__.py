@@ -5,12 +5,14 @@ from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail
+from flask_migrate import Migrate
 from datetime import timedelta
 
 db = SQLAlchemy()
 jwt = JWTManager()
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 mail = Mail()
+migrate = Migrate()
 
 
 def create_app():
@@ -24,6 +26,7 @@ def create_app():
     jwt.init_app(app)
     limiter.init_app(app)
     mail.init_app(app)
+    migrate.init_app(app, db)
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     from app.routes.auth import auth_bp

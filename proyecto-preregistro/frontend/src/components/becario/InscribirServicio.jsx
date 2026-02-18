@@ -7,19 +7,27 @@ import {
   HiOutlineCheckCircle,
 } from 'react-icons/hi2'
 
+const REGEX_MATRICULA = /^[Aa]\d{8}$/
+
 export default function InscribirServicio() {
   const [matricula, setMatricula] = useState('')
+  const [matriculaError, setMatriculaError] = useState('')
   const [crn, setCrn] = useState('')
   const [estudiante, setEstudiante] = useState(null)
   const [buscando, setBuscando] = useState(false)
   const [inscribiendo, setInscribiendo] = useState(false)
   const [exito, setExito] = useState(false)
 
+  const validateMatricula = (val) => {
+    if (!val.trim()) return 'Ingresa la matrícula'
+    if (!REGEX_MATRICULA.test(val.trim())) return 'Formato: A00000000'
+    return ''
+  }
+
   const buscarEstudiante = async () => {
-    if (!matricula.trim()) {
-      toast.error('Ingresa la matrícula')
-      return
-    }
+    const error = validateMatricula(matricula)
+    if (error) { setMatriculaError(error); return }
+    setMatriculaError('')
     setBuscando(true)
     setEstudiante(null)
     setExito(false)
@@ -45,10 +53,7 @@ export default function InscribirServicio() {
     }
     setInscribiendo(true)
     try {
-      await preregistrosAPI.create({
-        estudiante_id: estudiante.id,
-        crn: crn.trim(),
-      })
+      await preregistrosAPI.create({ estudiante_id: estudiante.id, crn: crn.trim() })
       setExito(true)
       toast.success('Estudiante inscrito exitosamente')
     } catch (err) {
@@ -58,39 +63,23 @@ export default function InscribirServicio() {
     }
   }
 
-  const resetForm = () => {
-    setMatricula('')
-    setCrn('')
-    setEstudiante(null)
-    setExito(false)
-  }
+  const resetForm = () => { setMatricula(''); setCrn(''); setEstudiante(null); setExito(false); setMatriculaError('') }
 
   if (exito) {
     return (
       <div>
         <div className="page-header">
-          <h1>
-            <span className="page-header-icon teal"><HiOutlineCheckCircle /></span>
-            Inscripción Exitosa
-          </h1>
+          <h1><span className="page-header-icon teal"><HiOutlineCheckCircle /></span>Inscripción Exitosa</h1>
         </div>
         <div className="card" style={{ maxWidth: 480, textAlign: 'center' }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: 'var(--radius-xl)',
-            background: 'var(--success-soft)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            fontSize: '2rem', color: 'var(--teal-500)',
-            margin: '0 auto var(--space-lg)',
-          }}>
+          <div style={{ width: 72, height: 72, borderRadius: 'var(--radius-xl)', background: 'var(--success-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', color: 'var(--teal-500)', margin: '0 auto var(--space-lg)' }}>
             <HiOutlineCheckCircle />
           </div>
           <h3>{estudiante.nombre_completo}</h3>
           <p className="text-muted text-sm" style={{ marginBottom: 'var(--space-lg)' }}>
             Inscrito al servicio con CRN: <strong>{crn}</strong>
           </p>
-          <button className="btn btn-primary" onClick={resetForm}>
-            Nueva Inscripción
-          </button>
+          <button className="btn btn-primary" onClick={resetForm}>Nueva Inscripción</button>
         </div>
       </div>
     )
@@ -99,25 +88,22 @@ export default function InscribirServicio() {
   return (
     <div>
       <div className="page-header">
-        <h1>
-          <span className="page-header-icon amber"><HiOutlineUserPlus /></span>
-          Inscribir a Servicio
-        </h1>
+        <h1><span className="page-header-icon amber"><HiOutlineUserPlus /></span>Inscribir a Servicio</h1>
         <p className="page-subtitle">Inscribe un estudiante a un servicio mediante su CRN</p>
       </div>
 
       <div className="card" style={{ maxWidth: 560 }}>
-        {/* Paso 1: Buscar estudiante */}
         <div style={{ marginBottom: 'var(--space-xl)' }}>
           <h4 style={{ marginBottom: 'var(--space-md)' }}>1. Buscar Estudiante</h4>
           <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
             <div className="search-input-wrapper" style={{ flex: 1 }}>
               <span className="search-icon"><HiOutlineMagnifyingGlass /></span>
               <input
-                className="form-input"
-                placeholder="Matrícula del estudiante..."
+                className={`form-input ${matriculaError ? 'invalid' : ''}`}
+                placeholder="Matrícula del estudiante (A00000000)"
                 value={matricula}
-                onChange={(e) => setMatricula(e.target.value)}
+                onChange={(e) => { setMatricula(e.target.value); setMatriculaError('') }}
+                onBlur={() => { if (matricula) setMatriculaError(validateMatricula(matricula)) }}
                 onKeyDown={(e) => e.key === 'Enter' && buscarEstudiante()}
               />
             </div>
@@ -125,40 +111,22 @@ export default function InscribirServicio() {
               {buscando ? '...' : 'Buscar'}
             </button>
           </div>
+          {matriculaError && <div className="form-error">{matriculaError}</div>}
 
           {estudiante && (
-            <div style={{
-              marginTop: 'var(--space-md)', padding: 'var(--space-md)',
-              background: 'var(--success-soft)', borderRadius: 'var(--radius-md)',
-              border: '1px solid rgba(46, 196, 182, 0.2)',
-            }}>
+            <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'var(--success-soft)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(46, 196, 182, 0.2)' }}>
               <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{estudiante.nombre_completo}</div>
-              <div className="text-sm text-muted">
-                {estudiante.matricula} · {estudiante.carrera_nombre || estudiante.carrera}
-              </div>
+              <div className="text-sm text-muted">{estudiante.matricula} · {estudiante.carrera_nombre || estudiante.carrera}</div>
             </div>
           )}
         </div>
 
-        {/* Paso 2: Ingresar CRN */}
         <form onSubmit={handleInscribir}>
-          <h4 style={{ marginBottom: 'var(--space-md)', opacity: estudiante ? 1 : 0.4 }}>
-            2. Ingresar CRN del Servicio
-          </h4>
+          <h4 style={{ marginBottom: 'var(--space-md)', opacity: estudiante ? 1 : 0.4 }}>2. Ingresar CRN del Servicio</h4>
           <div className="form-group">
-            <input
-              className="form-input"
-              placeholder="CRN del servicio"
-              value={crn}
-              onChange={(e) => setCrn(e.target.value)}
-              disabled={!estudiante}
-            />
+            <input className="form-input" placeholder="CRN del servicio" value={crn} onChange={(e) => setCrn(e.target.value)} disabled={!estudiante} />
           </div>
-          <button
-            type="submit"
-            className="btn btn-primary btn-lg w-full"
-            disabled={!estudiante || !crn.trim() || inscribiendo}
-          >
+          <button type="submit" className="btn btn-primary btn-lg w-full" disabled={!estudiante || !crn.trim() || inscribiendo}>
             {inscribiendo ? 'Inscribiendo...' : 'Inscribir Estudiante'}
           </button>
         </form>
