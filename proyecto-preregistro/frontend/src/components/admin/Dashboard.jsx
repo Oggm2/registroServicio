@@ -100,8 +100,8 @@ export default function Dashboard() {
           <div className="stat-value">{stats?.total_preregistros ?? 0}</div>
           <div className="stat-label">Pre-registros Totales</div>
         </div>
-        <div className="stat-card red stagger-item">
-          <div className="stat-icon red"><HiOutlineAcademicCap /></div>
+        <div className="stat-card navy stagger-item">
+          <div className="stat-icon navy"><HiOutlineAcademicCap /></div>
           <div className="stat-value">{stats?.servicios_activos ?? 0}</div>
           <div className="stat-label">Servicios Activos</div>
         </div>
@@ -262,7 +262,7 @@ export default function Dashboard() {
                       <td>{s.inscritos}</td>
                       <td>{s.cupo_maximo}</td>
                       <td>
-                        <span className={`badge ${s.disponibles <= 0 ? 'badge-red' : s.disponibles <= 5 ? 'badge-amber' : 'badge-teal'}`}>
+                        <span className={`badge ${s.disponibles <= 0 ? 'badge-navy' : s.disponibles <= 5 ? 'badge-navy' : 'badge-teal'}`}>
                           {s.disponibles}
                         </span>
                       </td>
