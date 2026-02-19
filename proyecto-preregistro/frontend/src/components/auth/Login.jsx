@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import toast from 'react-hot-toast'
 import {
   HiOutlineAcademicCap,
   HiOutlineClipboardDocumentList,
@@ -14,13 +13,20 @@ export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [shake, setShake] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  const triggerShake = () => {
+    setShake(true)
+    setTimeout(() => setShake(false), 500)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.username || !form.password) {
-      toast.error('Completa todos los campos')
+      setError('Completa todos los campos')
+      triggerShake()
       return
     }
     setSubmitting(true)
@@ -31,6 +37,7 @@ export default function Login() {
       navigate(dest, { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Credenciales incorrectas')
+      triggerShake()
     } finally {
       setSubmitting(false)
     }
@@ -40,7 +47,7 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-left">
         <div className="auth-brand">
-          <div className="auth-brand-logo">PR</div>
+          <img src="/images/teus_animado.png" alt="TEUS" className="auth-brand-image" />
           <h1>Sistema de Pre-Registro</h1>
           <p>Gestiona tus pre-registros a proyectos académicos y controla tu asistencia a ferias de forma sencilla.</p>
         </div>
@@ -65,7 +72,8 @@ export default function Login() {
       </div>
 
       <div className="auth-right">
-        <div className="auth-card">
+        <div className={`auth-card ${shake ? 'shake' : ''}`}>
+          <img src="/images/logo.png" alt="Tec de Monterrey" className="auth-card-logo" />
           <h2>Iniciar Sesión</h2>
           <p className="auth-card-sub">Ingresa tus credenciales para continuar</p>
 

@@ -192,6 +192,19 @@ input, select, textarea, button {
   transition: margin-left var(--duration-normal) var(--ease-out);
 }
 
+.app-banner {
+  width: 100%;
+  height: 150px;
+  overflow: hidden;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.app-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .app-content {
   padding: var(--space-xl) var(--space-2xl);
   max-width: 1400px;
@@ -221,6 +234,12 @@ input, select, textarea, button {
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
 }
 
 @keyframes progressFill {
@@ -280,15 +299,8 @@ input, select, textarea, button {
 .sidebar-logo-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--amber-500), var(--amber-600));
   border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--navy-900);
+  object-fit: contain;
   flex-shrink: 0;
 }
 
@@ -376,6 +388,15 @@ input, select, textarea, button {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.sidebar-tec-logo {
+  width: 80%;
+  max-width: 160px;
+  margin: 0 auto var(--space-md);
+  display: block;
+  opacity: 0.7;
+  filter: brightness(0) invert(1);
 }
 
 .sidebar-footer {
@@ -1063,19 +1084,9 @@ input, select, textarea, button {
   margin-bottom: var(--space-3xl);
 }
 
-.auth-brand-logo {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, var(--amber-500), var(--amber-600));
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--navy-900);
-  margin-bottom: var(--space-lg);
+.auth-brand-image {
+  max-width: 280px;
+  margin-bottom: var(--space-xl);
 }
 
 .auth-brand h1 {
@@ -1134,6 +1145,16 @@ input, select, textarea, button {
   border-radius: var(--radius-xl);
   padding: var(--space-2xl);
   box-shadow: var(--shadow-xl);
+}
+
+.auth-card.shake {
+  animation: shake 0.5s var(--ease-out);
+}
+
+.auth-card-logo {
+  display: block;
+  width: 120px;
+  margin: 0 auto var(--space-lg);
 }
 
 .auth-card h2 {

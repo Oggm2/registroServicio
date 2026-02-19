@@ -106,7 +106,7 @@ export default function Sidebar({ open, onClose }) {
       <aside className={`sidebar ${open ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <div className="sidebar-logo-icon">PR</div>
+            <img src="/images/logo_borrego.png" alt="Logo" className="sidebar-logo-icon" />
             <div>
               <div className="sidebar-logo-text">Pre-Registro</div>
               <div className="sidebar-logo-sub">Sistema Académico</div>
@@ -135,6 +135,7 @@ export default function Sidebar({ open, onClose }) {
         ))}
 
         <div className="sidebar-footer">
+          <img src="/images/logo.png" alt="Tec de Monterrey" className="sidebar-tec-logo" />
           <div className="sidebar-user">
             <div className="sidebar-avatar">{initials}</div>
             <div className="sidebar-user-info">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sociosFormadoresAPI } from '../../services/api'
 import toast from 'react-hot-toast'
@@ -9,6 +9,7 @@ import {
   HiOutlineTrash,
   HiOutlineXMark,
   HiOutlineEye,
+  HiOutlineMagnifyingGlass,
 } from 'react-icons/hi2'
 
 export default function GestionSocios() {
@@ -20,14 +21,18 @@ export default function GestionSocios() {
   const [submitting, setSubmitting] = useState(false)
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState(null)
+  const [search, setSearch] = useState('')
+  const searchTimer = useRef(null)
   const navigate = useNavigate()
 
-  useEffect(() => { loadSocios() }, [page])
+  useEffect(() => { loadSocios() }, [page, search])
 
   const loadSocios = async () => {
     setLoading(true)
     try {
-      const { data } = await sociosFormadoresAPI.getAll({ page, per_page: 20 })
+      const params = { page, per_page: 20 }
+      if (search.trim()) params.q = search.trim()
+      const { data } = await sociosFormadoresAPI.getAll(params)
       setSocios(data.data || data)
       setPagination(data.pagination || null)
     } catch {
@@ -35,6 +40,14 @@ export default function GestionSocios() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSearch = (value) => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchTimer.current = setTimeout(() => {
+      setPage(1)
+      setSearch(value)
+    }, 400)
   }
 
   const openCreate = () => { setNombre(''); setEditId(null); setModal('create') }
@@ -70,6 +83,18 @@ export default function GestionSocios() {
         <button className="btn btn-primary" onClick={openCreate}><HiOutlinePlus /> Nuevo Socio</button>
       </div>
 
+      <div className="search-bar">
+        <div className="search-input-wrapper">
+          <span className="search-icon"><HiOutlineMagnifyingGlass /></span>
+          <input
+            className="form-input"
+            placeholder="Buscar socio formador por nombre..."
+            defaultValue=""
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
       {loading ? (
         <div className="loading-spinner"><div className="spinner" /></div>
       ) : (
@@ -91,7 +116,9 @@ export default function GestionSocios() {
                   </tr>
                 ))}
                 {socios.length === 0 && (
-                  <tr><td colSpan={2} className="text-center text-muted" style={{ padding: 'var(--space-2xl)' }}>No hay socios formadores registrados</td></tr>
+                  <tr><td colSpan={2} className="text-center text-muted" style={{ padding: 'var(--space-2xl)' }}>
+                    {search ? 'No se encontraron socios formadores' : 'No hay socios formadores registrados'}
+                  </td></tr>
                 )}
               </tbody>
             </table>

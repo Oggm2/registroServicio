@@ -22,8 +22,12 @@ def paginate_query(query, page=1, per_page=20):
 def get_socios():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
+    q = request.args.get('q', '').strip()
 
-    query = SocioFormador.query.order_by(SocioFormador.nombre)
+    query = SocioFormador.query
+    if q:
+        query = query.filter(SocioFormador.nombre.ilike(f'%{q}%'))
+    query = query.order_by(SocioFormador.nombre)
     items, pagination = paginate_query(query, page, per_page)
     return jsonify({
         'data': [{'id': s.id, 'nombre': s.nombre} for s in items],

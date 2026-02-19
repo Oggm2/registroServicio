@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { estudiantesAPI } from '../../services/api'
+import { estudiantesAPI, authAPI } from '../../services/api'
 import toast from 'react-hot-toast'
-import { HiOutlineUserCircle } from 'react-icons/hi2'
+import { HiOutlineUserCircle, HiOutlineKey, HiOutlineXMark } from 'react-icons/hi2'
 
 const REGEX = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -14,6 +14,9 @@ export default function MiPerfil() {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [pwModal, setPwModal] = useState(false)
+  const [pwForm, setPwForm] = useState({ current_password: '', new_password: '', confirm: '' })
+  const [pwSubmitting, setPwSubmitting] = useState(false)
 
   useEffect(() => { loadPerfil() }, [])
 
@@ -56,6 +59,32 @@ export default function MiPerfil() {
       toast.error(err.response?.data?.error || 'Error al actualizar perfil')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    if (pwForm.new_password.length < 6) {
+      toast.error('La nueva contraseña debe tener al menos 6 caracteres')
+      return
+    }
+    if (pwForm.new_password !== pwForm.confirm) {
+      toast.error('Las contraseñas no coinciden')
+      return
+    }
+    setPwSubmitting(true)
+    try {
+      await authAPI.changePassword({
+        current_password: pwForm.current_password,
+        new_password: pwForm.new_password,
+      })
+      toast.success('Contraseña actualizada')
+      setPwModal(false)
+      setPwForm({ current_password: '', new_password: '', confirm: '' })
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al cambiar contraseña')
+    } finally {
+      setPwSubmitting(false)
     }
   }
 
@@ -109,6 +138,57 @@ export default function MiPerfil() {
           </div>
         </form>
       </div>
+
+      <div className="card" style={{ maxWidth: 600, marginTop: 'var(--space-lg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h3 style={{ fontSize: '1.05rem', marginBottom: 4 }}>Seguridad</h3>
+            <p className="text-sm text-muted">Actualiza tu contraseña de acceso</p>
+          </div>
+          <button className="btn btn-outline" onClick={() => { setPwForm({ current_password: '', new_password: '', confirm: '' }); setPwModal(true) }}>
+            <HiOutlineKey /> Cambiar Contraseña
+          </button>
+        </div>
+      </div>
+
+      {pwModal && (
+        <div className="modal-overlay" onClick={() => setPwModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Cambiar Contraseña</h2>
+              <button className="modal-close" onClick={() => setPwModal(false)}><HiOutlineXMark /></button>
+            </div>
+            <form onSubmit={handleChangePassword}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Contraseña Actual</label>
+                  <input className="form-input" type="password" placeholder="Tu contraseña actual"
+                    value={pwForm.current_password}
+                    onChange={(e) => setPwForm({ ...pwForm, current_password: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Nueva Contraseña</label>
+                  <input className="form-input" type="password" placeholder="Mínimo 6 caracteres"
+                    value={pwForm.new_password}
+                    onChange={(e) => setPwForm({ ...pwForm, new_password: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Confirmar Nueva Contraseña</label>
+                  <input className="form-input" type="password" placeholder="Repite la nueva contraseña"
+                    value={pwForm.confirm}
+                    onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-outline" onClick={() => setPwModal(false)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary" disabled={pwSubmitting}>
+                  {pwSubmitting ? 'Cambiando...' : 'Cambiar Contraseña'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

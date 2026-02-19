@@ -56,6 +56,7 @@ export default function ValidarAsistencia() {
       })
       toast.success(`Estatus actualizado a "${nuevoEstatus}"`)
     } catch (err) {
+      console.error('Error al cambiar estatus:', err.response?.data || err.message)
       toast.error(err.response?.data?.error || 'Error al actualizar estatus')
     } finally {
       setValidando(false)
