@@ -142,11 +142,13 @@ export default function Sidebar({ open, onClose }) {
               <div className="sidebar-user-name">{user?.nombre || user?.username}</div>
               <div className="sidebar-user-role">{user?.rol}</div>
             </div>
-            <button className="sidebar-logout" onClick={() => { setPwForm({ current_password: '', new_password: '', confirm: '' }); setPwModal(true) }} title="Cambiar contraseña" style={{ marginLeft: 0 }}>
-              <HiOutlineKey />
+          </div>
+          <div className="sidebar-actions">
+            <button className="sidebar-action-btn" onClick={() => { setPwForm({ current_password: '', new_password: '', confirm: '' }); setPwModal(true) }}>
+              <HiOutlineKey /> Cambiar Contraseña
             </button>
-            <button className="sidebar-logout" onClick={logout} title="Cerrar sesión">
-              <HiOutlineArrowRightOnRectangle />
+            <button className="sidebar-action-btn sidebar-action-danger" onClick={logout}>
+              <HiOutlineArrowRightOnRectangle /> Cerrar Sesión
             </button>
           </div>
         </div>

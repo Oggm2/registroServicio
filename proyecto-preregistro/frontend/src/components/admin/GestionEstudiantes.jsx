@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api, { gestionEstudiantesAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import TableSkeleton from '../common/TableSkeleton'
 import {
   HiOutlineAcademicCap,
   HiOutlinePlus,
@@ -147,7 +148,7 @@ export default function GestionEstudiantes() {
       </div>
 
       {loading ? (
-        <div className="loading-spinner"><div className="spinner" /></div>
+        <TableSkeleton rows={6} cols={6} />
       ) : (
         <>
           <div className="table-container table-responsive">

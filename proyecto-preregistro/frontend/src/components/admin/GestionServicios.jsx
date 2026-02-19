@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { serviciosAPI, sociosFormadoresAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import TableSkeleton from '../common/TableSkeleton'
 import {
   HiOutlineCog6Tooth,
   HiOutlinePlus,
@@ -145,7 +146,7 @@ export default function GestionServicios() {
       </div>
 
       {loading ? (
-        <div className="loading-spinner"><div className="spinner" /></div>
+        <TableSkeleton rows={6} cols={7} />
       ) : (
         <>
           <div className="table-container table-responsive">

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Sidebar from './Sidebar'
-import Navbar from './Navbar'
+import { HiOutlineBars3 } from 'react-icons/hi2'
 
 const BANNER_BY_ROLE = {
   Admin: '/images/Biblioteca.png',
@@ -20,7 +20,9 @@ export default function Layout() {
     <div className="app-layout">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="app-main">
-        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <button className="mobile-menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          <HiOutlineBars3 />
+        </button>
         <div className="app-banner">
           <img src={bannerSrc} alt="" className="app-banner-img" />
         </div>

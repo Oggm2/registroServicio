@@ -83,7 +83,7 @@ class AsistenciaFeria(db.Model):
     fecha_asistencia = db.Column(db.Date, default=datetime.utcnow)
     horario_seleccionado = db.Column(db.String(50), nullable=False)
     hora_real_asistencia = db.Column(db.Time)
-    hora_salida = db.Column(db.Time)
+    hora_salida = db.Column(db.DateTime)
     estatus_asistencia = db.Column(db.String(30), default='pendiente')
     evento_feria_id = db.Column(db.Integer, nullable=True)
     periodo = db.Column(db.String(30))

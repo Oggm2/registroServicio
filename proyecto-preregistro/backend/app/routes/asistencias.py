@@ -96,7 +96,7 @@ def validar_asistencia(id):
     if estatus == 'dentro':
         asistencia.hora_real_asistencia = datetime.now().time()
     elif estatus == 'asistió':
-        asistencia.hora_salida = datetime.now().time()
+        asistencia.hora_salida = datetime.now()
 
     asistencia.estatus_asistencia = estatus
     db.session.commit()

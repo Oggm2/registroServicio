@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { gestionBecariosAPI, gestionEstudiantesAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import TableSkeleton from '../common/TableSkeleton'
 import {
   HiOutlineUserGroup,
   HiOutlinePlus,
@@ -89,7 +90,7 @@ export default function GestionBecarios() {
       </div>
 
       {loading ? (
-        <div className="loading-spinner"><div className="spinner" /></div>
+        <TableSkeleton rows={5} cols={2} />
       ) : (
         <>
           <div className="table-container table-responsive">

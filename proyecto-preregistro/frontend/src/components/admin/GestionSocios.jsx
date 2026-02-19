@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sociosFormadoresAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import TableSkeleton from '../common/TableSkeleton'
 import {
   HiOutlineBuildingOffice2,
   HiOutlinePlus,
@@ -96,7 +97,7 @@ export default function GestionSocios() {
       </div>
 
       {loading ? (
-        <div className="loading-spinner"><div className="spinner" /></div>
+        <TableSkeleton rows={6} cols={2} />
       ) : (
         <>
           <div className="table-container table-responsive">

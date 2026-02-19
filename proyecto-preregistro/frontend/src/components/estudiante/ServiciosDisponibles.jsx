@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { serviciosAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import TableSkeleton from '../common/TableSkeleton'
 import { HiOutlineEye, HiOutlineMagnifyingGlass } from 'react-icons/hi2'
 
 export default function ServiciosDisponibles() {
@@ -51,7 +52,7 @@ export default function ServiciosDisponibles() {
       </div>
 
       {loading ? (
-        <div className="loading-spinner"><div className="spinner" /></div>
+        <TableSkeleton rows={5} cols={5} />
       ) : (
         <div className="table-container">
           <table className="table">
