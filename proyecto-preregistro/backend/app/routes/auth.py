@@ -163,6 +163,7 @@ def forgot_password():
         except Exception as e:
             import logging
             logging.getLogger(__name__).error(f'Error al enviar correo: {e}')
+            return jsonify({'debug_error': str(e)}), 500
 
     return jsonify({'message': 'Si el correo existe, recibirás un enlace de recuperación'}), 200
 
