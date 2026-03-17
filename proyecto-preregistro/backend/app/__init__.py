@@ -27,7 +27,23 @@ def create_app():
     limiter.init_app(app)
     mail.init_app(app)
     migrate.init_app(app, db)
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+    # B2: CORS configurable via CORS_ORIGINS env var (default permisivo para dev)
+    cors_origins = app.config.get('CORS_ORIGINS', '*')
+    if isinstance(cors_origins, str) and cors_origins != '*' and ',' in cors_origins:
+        cors_origins = [o.strip() for o in cors_origins.split(',')]
+    CORS(app, resources={r"/api/*": {"origins": cors_origins}})
+
+    # B3: Error handlers globales que devuelven JSON
+    from flask import jsonify as _jsonify
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return _jsonify({'error': 'Recurso no encontrado'}), 404
+
+    @app.errorhandler(500)
+    def server_error(e):
+        return _jsonify({'error': 'Error interno del servidor'}), 500
 
     from app.routes.auth import auth_bp
     from app.routes.estudiantes import estudiantes_bp

@@ -10,6 +10,7 @@ import ResetPassword from './components/auth/ResetPassword'
 // Common
 import Layout from './components/common/Layout'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import NotFound from './components/common/NotFound'
 
 // Estudiante
 import RegistroFeria from './components/estudiante/RegistroFeria'
@@ -22,6 +23,7 @@ import BuscarEstudiante from './components/becario/BuscarEstudiante'
 import ValidarAsistencia from './components/becario/ValidarAsistencia'
 import InscribirServicio from './components/becario/InscribirServicio'
 import PreRegistros from './components/becario/PreRegistros'
+import InscritosServicio from './components/becario/InscritosServicio'
 
 // Admin
 import Dashboard from './components/admin/Dashboard'
@@ -31,6 +33,8 @@ import DetalleSocio from './components/admin/DetalleSocio'
 import GestionEstudiantes from './components/admin/GestionEstudiantes'
 import GestionBecarios from './components/admin/GestionBecarios'
 import Reportes from './components/admin/Reportes'
+import GestionCarreras from './components/admin/GestionCarreras'
+import MiPerfilAdmin from './components/admin/MiPerfilAdmin'
 
 function RedirectByRole() {
   const { user } = useAuth()
@@ -101,6 +105,11 @@ export default function App() {
             <PreRegistros />
           </ProtectedRoute>
         } />
+        <Route path="inscritos-servicio" element={
+          <ProtectedRoute roles={['Becario', 'Admin']}>
+            <InscritosServicio />
+          </ProtectedRoute>
+        } />
 
         {/* Solo Admin */}
         <Route path="dashboard" element={
@@ -138,10 +147,20 @@ export default function App() {
             <Reportes />
           </ProtectedRoute>
         } />
+        <Route path="gestion-carreras" element={
+          <ProtectedRoute roles={['Admin']}>
+            <GestionCarreras />
+          </ProtectedRoute>
+        } />
+        <Route path="mi-perfil-admin" element={
+          <ProtectedRoute roles={['Admin']}>
+            <MiPerfilAdmin />
+          </ProtectedRoute>
+        } />
       </Route>
 
-      {/* Catch-all */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Catch-all — I1 */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }

@@ -19,6 +19,7 @@ import {
   HiOutlineUserCircle,
   HiOutlineKey,
   HiOutlineXMark,
+  HiOutlineListBullet,
 } from 'react-icons/hi2'
 import { authAPI } from '../../services/api'
 import toast from 'react-hot-toast'
@@ -38,6 +39,7 @@ const navByRole = {
       { to: '/validar-asistencia', label: 'Validar Asistencia', icon: HiOutlineClipboardDocumentCheck },
       { to: '/inscribir-servicio', label: 'Inscribir a Servicio', icon: HiOutlineUserPlus },
       { to: '/preregistros', label: 'Pre-registros', icon: HiOutlineQueueList },
+      { to: '/inscritos-servicio', label: 'Inscritos por Servicio', icon: HiOutlineListBullet },
     ]},
   ],
   Admin: [
@@ -49,13 +51,18 @@ const navByRole = {
       { to: '/validar-asistencia', label: 'Validar Asistencia', icon: HiOutlineClipboardDocumentCheck },
       { to: '/inscribir-servicio', label: 'Inscribir a Servicio', icon: HiOutlineUserPlus },
       { to: '/preregistros', label: 'Pre-registros', icon: HiOutlineQueueList },
+      { to: '/inscritos-servicio', label: 'Inscritos por Servicio', icon: HiOutlineListBullet },
     ]},
     { section: 'Administración', items: [
       { to: '/gestion-servicios', label: 'Gestión Servicios', icon: HiOutlineCog6Tooth },
       { to: '/gestion-socios', label: 'Socios Formadores', icon: HiOutlineBuildingOffice2 },
       { to: '/gestion-estudiantes', label: 'Gestión Estudiantes', icon: HiOutlineAcademicCap },
       { to: '/gestion-becarios', label: 'Gestión Becarios', icon: HiOutlineUserGroup },
+      { to: '/gestion-carreras', label: 'Gestión Carreras', icon: HiOutlineListBullet },
       { to: '/reportes', label: 'Reportes', icon: HiOutlineDocumentArrowDown },
+    ]},
+    { section: 'Mi Cuenta', items: [
+      { to: '/mi-perfil-admin', label: 'Mi Perfil', icon: HiOutlineUserCircle },
     ]},
   ],
 }

@@ -9,6 +9,7 @@ import {
   HiOutlineXMark,
   HiOutlineKey,
   HiOutlineMagnifyingGlass,
+  HiOutlinePencil,
 } from 'react-icons/hi2'
 
 const INITIAL_FORM = {
@@ -37,6 +38,9 @@ export default function GestionEstudiantes() {
   const [resetModal, setResetModal] = useState(null)
   const [newPassword, setNewPassword] = useState('')
   const [resetting, setResetting] = useState(false)
+  const [editModal, setEditModal] = useState(null)
+  const [editForm, setEditForm] = useState({})
+  const [editSubmitting, setEditSubmitting] = useState(false)
 
   useEffect(() => { loadCarreras() }, [])
   useEffect(() => { loadEstudiantes() }, [page])
@@ -100,6 +104,34 @@ export default function GestionEstudiantes() {
 
   const openCreate = () => { setForm(INITIAL_FORM); setFormErrors({}); setModal(true) }
 
+  const openEdit = (e) => {
+    setEditModal(e)
+    setEditForm({
+      nombre_completo: e.nombre_completo,
+      carrera_id: e.carrera_id || '',
+      celular: e.celular || '',
+      correo_alterno: e.correo_alterno || '',
+    })
+  }
+
+  const handleEditSubmit = async (ev) => {
+    ev.preventDefault()
+    setEditSubmitting(true)
+    try {
+      await gestionEstudiantesAPI.update(editModal.id, {
+        ...editForm,
+        carrera_id: editForm.carrera_id ? parseInt(editForm.carrera_id) : undefined,
+      })
+      toast.success('Estudiante actualizado')
+      setEditModal(null)
+      loadEstudiantes()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al actualizar')
+    } finally {
+      setEditSubmitting(false)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
@@ -154,7 +186,7 @@ export default function GestionEstudiantes() {
           <div className="table-container table-responsive">
             <table className="table">
               <thead>
-                <tr><th>Nombre</th><th>Matrícula</th><th>Carrera</th><th>Celular</th><th>Username</th><th style={{ width: 120 }}>Acciones</th></tr>
+                <tr><th>Nombre</th><th>Matrícula</th><th>Carrera</th><th>Celular</th><th>Username</th><th style={{ width: 148 }}>Acciones</th></tr>
               </thead>
               <tbody>
                 {estudiantes.map((e) => (
@@ -166,6 +198,7 @@ export default function GestionEstudiantes() {
                     <td data-label="Username" className="text-muted">{e.username}</td>
                     <td data-label="Acciones">
                       <div style={{ display: 'flex', gap: '4px' }}>
+                        <button className="btn btn-outline btn-sm btn-icon" onClick={() => openEdit(e)} title="Editar"><HiOutlinePencil /></button>
                         <button className="btn btn-outline btn-sm btn-icon" onClick={() => { setNewPassword(''); setResetModal(e) }} title="Reset Password"><HiOutlineKey /></button>
                         <button className="btn btn-danger btn-sm btn-icon" onClick={() => handleDelete(e.id)} title="Dar de baja"><HiOutlineTrash /></button>
                       </div>
@@ -245,6 +278,55 @@ export default function GestionEstudiantes() {
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={() => setModal(false)}>Cancelar</button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Creando...' : 'Crear Estudiante'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editModal && (
+        <div className="modal-overlay" onClick={() => setEditModal(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Editar Estudiante</h2>
+              <button className="modal-close" onClick={() => setEditModal(null)}><HiOutlineXMark /></button>
+            </div>
+            <form onSubmit={handleEditSubmit}>
+              <div className="modal-body">
+                <p className="text-sm text-muted" style={{ marginBottom: 'var(--space-md)' }}>
+                  Editando: <strong>{editModal.nombre_completo}</strong> ({editModal.matricula})
+                </p>
+                <div className="form-group">
+                  <label className="form-label">Nombre Completo</label>
+                  <input className="form-input" value={editForm.nombre_completo || ''}
+                    onChange={(e) => setEditForm({ ...editForm, nombre_completo: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Carrera</label>
+                  <select className="form-select" value={editForm.carrera_id || ''}
+                    onChange={(e) => setEditForm({ ...editForm, carrera_id: e.target.value })}>
+                    <option value="">Sin cambio</option>
+                    {carreras.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                  </select>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Celular</label>
+                    <input className="form-input" placeholder="ej. 8112345678" value={editForm.celular || ''}
+                      onChange={(e) => setEditForm({ ...editForm, celular: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Correo Alterno</label>
+                    <input className="form-input" type="email" value={editForm.correo_alterno || ''}
+                      onChange={(e) => setEditForm({ ...editForm, correo_alterno: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-outline" onClick={() => setEditModal(null)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary" disabled={editSubmitting}>
+                  {editSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
               </div>
             </form>
           </div>

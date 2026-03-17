@@ -10,14 +10,15 @@ import {
 
 export default function Reportes() {
   const [descargando, setDescargando] = useState(null)
-  const [filtros, setFiltros] = useState({ periodo: '', carrera: '', formato: 'csv' })
+  const [filtros, setFiltros] = useState({ periodo: '', carrera: '', socio_formador: '', crn: '', formato: 'csv' })
 
   const set = (field) => (e) => setFiltros({ ...filtros, [field]: e.target.value })
 
   const descargar = async (tipo) => {
     setDescargando(tipo)
     try {
-      const params = { ...filtros }
+      const { socio_formador, crn, ...filtrosBase } = filtros
+      const params = tipo === 'estudiantes' ? filtrosBase : filtros
       const response = tipo === 'estudiantes'
         ? await adminAPI.reporteEstudiantes(params)
         : await adminAPI.reportePreregistros(params)
@@ -74,6 +75,18 @@ export default function Reportes() {
               <option value="csv">CSV</option>
               <option value="excel">Excel (.xlsx)</option>
             </select>
+          </div>
+        </div>
+        <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr', maxWidth: 430, marginTop: 'var(--space-sm)' }}>
+          <div className="form-group">
+            <label className="form-label">Socio Formador <span className="text-xs text-muted">(solo pre-registros)</span></label>
+            <input className="form-input" placeholder="Nombre del socio"
+              value={filtros.socio_formador} onChange={set('socio_formador')} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">CRN <span className="text-xs text-muted">(solo pre-registros)</span></label>
+            <input className="form-input" placeholder="ej. 12345"
+              value={filtros.crn} onChange={set('crn')} />
           </div>
         </div>
       </div>

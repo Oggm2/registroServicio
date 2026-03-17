@@ -425,8 +425,8 @@ input, select, textarea, button {
   max-width: 160px;
   margin: 0 auto var(--space-md);
   display: block;
-  opacity: 0.7;
-  filter: brightness(0) invert(1);
+  opacity: 0.85;
+  border-radius: var(--radius-md);
 }
 
 .sidebar-footer {
@@ -1051,6 +1051,33 @@ input, select, textarea, button {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-sm);
+}
+
+/* ── Modal responsive (U1) ── */
+@media (max-width: 600px) {
+  .modal-overlay {
+    padding: var(--space-sm);
+    align-items: flex-end;
+  }
+  .modal {
+    max-width: 100%;
+    max-height: 92dvh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  .modal-body {
+    padding: 0 var(--space-md) var(--space-md);
+  }
+  .modal-header {
+    padding: var(--space-lg) var(--space-md) var(--space-sm);
+  }
+  .modal-footer {
+    padding: var(--space-sm) var(--space-md) var(--space-lg);
+    flex-wrap: wrap;
+  }
+  .modal-footer .btn {
+    flex: 1;
+    min-width: 120px;
+  }
 }
 
 /* ═══════════════════════════════════════════

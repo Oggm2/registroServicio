@@ -5,6 +5,7 @@ import TableSkeleton from '../common/TableSkeleton'
 import {
   HiOutlineQueueList,
   HiOutlineMagnifyingGlass,
+  HiOutlineFunnel,
 } from 'react-icons/hi2'
 
 export default function PreRegistros() {
@@ -16,6 +17,13 @@ export default function PreRegistros() {
   const [carrera, setCarrera] = useState('')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState(null)
+  const [periodos, setPeriodos] = useState([])
+
+  useEffect(() => {
+    preregistrosAPI.getPeriodos()
+      .then(({ data }) => setPeriodos(data))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     loadRegistros()
@@ -57,10 +65,19 @@ export default function PreRegistros() {
           <input className="form-input" placeholder="Buscar por nombre, matrícula, CRN o servicio..." value={search} onChange={(e) => handleSearch(e.target.value)} />
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-          <input className="form-input" style={{ width: 130 }} placeholder="Periodo" value={periodo} onChange={(e) => { setPeriodo(e.target.value); setPage(1) }} />
           <input className="form-input" style={{ width: 150 }} placeholder="Carrera" value={carrera} onChange={(e) => { setCarrera(e.target.value); setPage(1) }} />
         </div>
       </div>
+
+      {periodos.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-md)', flexWrap: 'wrap' }}>
+          <HiOutlineFunnel style={{ color: 'var(--text-muted)' }} />
+          <button className={`filter-chip ${!periodo ? 'active' : ''}`} onClick={() => { setPeriodo(''); setPage(1) }}>Todos</button>
+          {periodos.map(p => (
+            <button key={p} className={`filter-chip ${periodo === p ? 'active' : ''}`} onClick={() => { setPeriodo(p); setPage(1) }}>{p}</button>
+          ))}
+        </div>
+      )}
 
       <div className="flex-between mb-md">
         <span className="text-sm text-muted">

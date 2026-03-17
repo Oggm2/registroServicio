@@ -79,11 +79,11 @@ export default function Login() {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Usuario</label>
+              <label className="form-label">Usuario o Matrícula</label>
               <input
                 className={`form-input ${error ? 'error' : ''}`}
                 type="text"
-                placeholder="Tu nombre de usuario"
+                placeholder="Tu usuario o matrícula"
                 value={form.username}
                 onChange={(e) => { setError(''); setForm({ ...form, username: e.target.value }) }}
                 autoComplete="username"

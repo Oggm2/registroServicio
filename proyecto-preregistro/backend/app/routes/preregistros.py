@@ -18,6 +18,15 @@ def paginate_query(query, page=1, per_page=20):
     }
 
 
+@preregistros_bp.route('/periodos', methods=['GET'])
+@role_required('Becario', 'Admin')
+def get_periodos():
+    periodos = [p[0] for p in db.session.query(Servicio.periodo).join(
+        PreRegistro, PreRegistro.servicio_id == Servicio.id
+    ).distinct().order_by(Servicio.periodo).all()]
+    return jsonify(periodos)
+
+
 @preregistros_bp.route('', methods=['GET'])
 @role_required('Becario', 'Admin')
 def get_preregistros():

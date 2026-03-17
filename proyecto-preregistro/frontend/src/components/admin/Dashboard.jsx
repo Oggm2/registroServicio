@@ -14,6 +14,8 @@ import {
   HiOutlineSignal,
   HiOutlineExclamationTriangle,
   HiOutlineFunnel,
+  HiOutlineTrash,
+  HiOutlineXMark,
 } from 'react-icons/hi2'
 
 const TOOLTIP_STYLE = {
@@ -48,6 +50,9 @@ export default function Dashboard() {
   const [dentroAhora, setDentroAhora] = useState(null)
   const [periodoFiltro, setPeriodoFiltro] = useState('')
   const intervalRef = useRef(null)
+  const [rebootModal, setRebootModal] = useState(false)
+  const [rebootConfirm, setRebootConfirm] = useState('')
+  const [rebooting, setRebooting] = useState(false)
 
   useEffect(() => {
     fetchDentro()
@@ -75,6 +80,25 @@ export default function Dashboard() {
       toast.error('Error al cargar estadísticas')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleReboot = async () => {
+    if (rebootConfirm !== periodoFiltro) {
+      toast.error('El periodo escrito no coincide')
+      return
+    }
+    setRebooting(true)
+    try {
+      const { data } = await adminAPI.rebootFeria(periodoFiltro)
+      toast.success(data.message)
+      setRebootModal(false)
+      setRebootConfirm('')
+      loadStats()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al reiniciar feria')
+    } finally {
+      setRebooting(false)
     }
   }
 
@@ -133,6 +157,15 @@ export default function Dashboard() {
               onClick={() => setPeriodoFiltro(p)}
             >{p}</button>
           ))}
+          {periodoFiltro && (
+            <button
+              className="btn btn-sm"
+              style={{ marginLeft: 'auto', background: 'var(--red-500)', color: 'white', border: 'none' }}
+              onClick={() => { setRebootConfirm(''); setRebootModal(true) }}
+            >
+              <HiOutlineTrash /> Reiniciar Feria {periodoFiltro}
+            </button>
+          )}
         </div>
       )}
 
@@ -422,6 +455,43 @@ export default function Dashboard() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Reboot Feria */}
+      {rebootModal && (
+        <div className="modal-overlay" onClick={() => setRebootModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 style={{ color: 'var(--red-500)' }}><HiOutlineTrash /> Reiniciar Feria</h2>
+              <button className="modal-close" onClick={() => setRebootModal(false)}><HiOutlineXMark /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: 'var(--space-md)' }}>
+                Esta acción eliminará <strong>TODAS las asistencias</strong> del periodo <strong>{periodoFiltro}</strong>. Los pre-registros y estudiantes NO se borran.
+              </p>
+              <p style={{ marginBottom: 'var(--space-sm)', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                Para confirmar, escribe el periodo exactamente: <strong>{periodoFiltro}</strong>
+              </p>
+              <input
+                className="form-input"
+                placeholder={periodoFiltro}
+                value={rebootConfirm}
+                onChange={(e) => setRebootConfirm(e.target.value)}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setRebootModal(false)}>Cancelar</button>
+              <button
+                className="btn"
+                style={{ background: 'var(--red-500)', color: 'white', border: 'none' }}
+                disabled={rebooting || rebootConfirm !== periodoFiltro}
+                onClick={handleReboot}
+              >
+                {rebooting ? 'Eliminando...' : 'Confirmar y Reiniciar'}
+              </button>
+            </div>
           </div>
         </div>
       )}
