@@ -80,6 +80,7 @@ class AsistenciaFeria(db.Model):
     __tablename__ = 'asistencias_feria'
     id = db.Column(db.Integer, primary_key=True)
     estudiante_id = db.Column(db.Integer, db.ForeignKey('estudiantes.id'), nullable=False)
+    servicio_id = db.Column(db.Integer, db.ForeignKey('servicios.id'), nullable=True)  # C1: vínculo opcional con servicio
     fecha_asistencia = db.Column(db.Date, default=datetime.utcnow)
     horario_seleccionado = db.Column(db.String(50), nullable=False)
     hora_real_asistencia = db.Column(db.Time)
@@ -87,3 +88,5 @@ class AsistenciaFeria(db.Model):
     estatus_asistencia = db.Column(db.String(30), default='pendiente')
     evento_feria_id = db.Column(db.Integer, nullable=True)
     periodo = db.Column(db.String(30))
+
+    servicio = db.relationship('Servicio', backref='asistencias')

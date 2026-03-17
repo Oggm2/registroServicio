@@ -18,6 +18,12 @@ def login():
         return jsonify({'error': 'Usuario y contraseña requeridos'}), 400
 
     user = Usuario.query.filter_by(username=username).first()
+    if not user:
+        estudiante = Estudiante.query.filter(
+            db.func.lower(Estudiante.matricula) == username.lower()
+        ).first()
+        if estudiante:
+            user = estudiante.usuario
     if not user or not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
         return jsonify({'error': 'Credenciales incorrectas'}), 401
 
@@ -43,7 +49,7 @@ def register():
     username = data.get('username', '').strip()
     password = data.get('password', '')
     nombre = data.get('nombre_completo', '').strip()
-    matricula = data.get('matricula', '').strip()
+    matricula = data.get('matricula', '').strip().lower()
     carrera_id = data.get('carrera_id')
 
     if not all([username, password, nombre, matricula, carrera_id]):
@@ -163,6 +169,7 @@ def forgot_password():
         except Exception as e:
             import logging
             logging.getLogger(__name__).error(f'Error al enviar correo: {e}')
+            return jsonify({'debug_error': str(e)}), 500
 
     return jsonify({'message': 'Si el correo existe, recibirás un enlace de recuperación'}), 200
 

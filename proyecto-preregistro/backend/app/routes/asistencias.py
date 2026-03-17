@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import Usuario, Estudiante, AsistenciaFeria
+from app.models import Usuario, Estudiante, AsistenciaFeria, PreRegistro, Servicio
 from app.middleware import role_required
 from datetime import date, datetime
 
@@ -37,18 +37,29 @@ def registrar_asistencia():
     if not horario:
         return jsonify({'error': 'Horario requerido'}), 400
 
-    # Verificar si ya tiene registro activo
+    # Verificar si ya tiene registro activo (primero, evita queries innecesarias)
     existente = AsistenciaFeria.query.filter_by(
         estudiante_id=user.estudiante.id
     ).first()
     if existente:
         return jsonify({'error': 'Ya tienes un registro de asistencia'}), 409
 
+    # I6: Validar que el estudiante tiene al menos un pre-registro activo
+    preregistro = PreRegistro.query.join(Servicio).filter(
+        PreRegistro.estudiante_id == user.estudiante.id
+    ).order_by(Servicio.periodo.desc()).first()
+    if not preregistro:
+        return jsonify({'error': 'Debes tener al menos un servicio inscrito para registrar asistencia'}), 400
+
+    # I7: Inferir periodo del pre-registro más reciente
+    periodo = data.get('periodo') or preregistro.servicio.periodo
+
     asistencia = AsistenciaFeria(
         estudiante_id=user.estudiante.id,
         horario_seleccionado=horario,
         fecha_asistencia=date.today(),
         estatus_asistencia='pendiente',
+        periodo=periodo,
     )
     db.session.add(asistencia)
     db.session.commit()
@@ -81,6 +92,27 @@ def actualizar_asistencia(id):
 
     db.session.commit()
     return jsonify({'message': 'Horario actualizado'})
+
+
+# I5: Estudiante puede cancelar su asistencia pendiente
+@asistencias_bp.route('/<int:id>', methods=['DELETE'])
+@jwt_required()
+def cancelar_asistencia(id):
+    user_id = get_jwt_identity()
+    user = Usuario.query.get(user_id)
+    asistencia = AsistenciaFeria.query.get_or_404(id)
+
+    if user.rol == 'Estudiante':
+        if not user.estudiante or asistencia.estudiante_id != user.estudiante.id:
+            return jsonify({'error': 'No tienes permisos'}), 403
+        if asistencia.estatus_asistencia != 'pendiente':
+            return jsonify({'error': 'Solo puedes cancelar registros en estatus pendiente'}), 400
+    elif user.rol not in ('Becario', 'Admin'):
+        return jsonify({'error': 'No tienes permisos'}), 403
+
+    db.session.delete(asistencia)
+    db.session.commit()
+    return jsonify({'message': 'Registro de asistencia cancelado'})
 
 
 @asistencias_bp.route('/<int:id>/validar', methods=['PUT'])

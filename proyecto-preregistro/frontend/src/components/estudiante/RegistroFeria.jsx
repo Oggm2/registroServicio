@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { asistenciasAPI } from '../../services/api'
 import toast from 'react-hot-toast'
-import { HiOutlineCalendarDays, HiOutlineClock, HiOutlineCheckCircle } from 'react-icons/hi2'
+import { HiOutlineCalendarDays, HiOutlineClock, HiOutlineCheckCircle, HiOutlineTrash } from 'react-icons/hi2'
 
 const HORARIOS = [
   { value: '09:00 - 10:00', label: '9:00 AM — 10:00 AM' },
@@ -59,6 +59,18 @@ export default function RegistroFeria() {
       toast.error(err.response?.data?.error || 'Error al registrar')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleCancelar = async () => {
+    if (!window.confirm('¿Cancelar tu registro de asistencia a la feria?')) return
+    try {
+      await asistenciasAPI.cancelar(registro.id)
+      setRegistro(null)
+      setHorario('')
+      toast.success('Registro cancelado')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al cancelar')
     }
   }
 
@@ -140,9 +152,16 @@ export default function RegistroFeria() {
               </span>
             </div>
 
-            <button className="btn btn-outline" onClick={() => setEditing(true)}>
-              <HiOutlineClock /> Cambiar Horario
-            </button>
+            <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button className="btn btn-outline" onClick={() => setEditing(true)}>
+                <HiOutlineClock /> Cambiar Horario
+              </button>
+              {registro.estatus_asistencia === 'pendiente' && (
+                <button className="btn btn-danger" onClick={handleCancelar}>
+                  <HiOutlineTrash /> Cancelar Registro
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

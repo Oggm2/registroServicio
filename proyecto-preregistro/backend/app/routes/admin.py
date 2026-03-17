@@ -26,9 +26,15 @@ def get_stats():
     periodo = request.args.get('periodo')
 
     total_registrados = Estudiante.query.count()
-    total_asistencias = AsistenciaFeria.query.count()
-    total_preregistros = PreRegistro.query.count()
-    servicios_activos = Servicio.query.count()
+
+    if periodo:
+        total_asistencias = AsistenciaFeria.query.filter_by(periodo=periodo).count()
+        total_preregistros = PreRegistro.query.join(Servicio).filter(Servicio.periodo == periodo).count()
+        servicios_activos = Servicio.query.filter_by(periodo=periodo).count()
+    else:
+        total_asistencias = AsistenciaFeria.query.count()
+        total_preregistros = PreRegistro.query.count()
+        servicios_activos = Servicio.query.count()
 
     # Asistencias por horario
     asistencias_horario = db.session.query(
@@ -47,7 +53,7 @@ def get_stats():
     ocupacion_periodo = ocupacion_q.group_by(Servicio.periodo)\
         .order_by(Servicio.periodo).all()
 
-    # Asistentes dentro ahora
+    # Asistentes dentro ahora (siempre global, refleja estado actual)
     asistentes_dentro = AsistenciaFeria.query.filter_by(estatus_asistencia='dentro').count()
 
     # Proyectos más solicitados
@@ -87,27 +93,41 @@ def get_stats():
     # --- Nuevas estadísticas ---
 
     # Tasa de no-asistencia
-    no_asistieron = AsistenciaFeria.query.filter_by(estatus_asistencia='no_asistió').count()
+    if periodo:
+        no_asistieron = AsistenciaFeria.query.filter_by(periodo=periodo, estatus_asistencia='no_asistió').count()
+    else:
+        no_asistieron = AsistenciaFeria.query.filter_by(estatus_asistencia='no_asistió').count()
     tasa_no_asistencia = round((no_asistieron / total_asistencias) * 100, 1) if total_asistencias > 0 else 0
 
     # Pre-registros por carrera
-    preregistros_carrera = db.session.query(
+    preregistros_carrera_q = db.session.query(
         Carrera.abreviatura, Carrera.nombre, db.func.count(PreRegistro.id)
     ).join(Estudiante, Estudiante.carrera_id == Carrera.id)\
-     .join(PreRegistro, PreRegistro.estudiante_id == Estudiante.id)\
-     .group_by(Carrera.id, Carrera.abreviatura, Carrera.nombre)\
-     .order_by(db.func.count(PreRegistro.id).desc()).all()
+     .join(PreRegistro, PreRegistro.estudiante_id == Estudiante.id)
+    if periodo:
+        preregistros_carrera_q = preregistros_carrera_q.join(Servicio, Servicio.id == PreRegistro.servicio_id)\
+            .filter(Servicio.periodo == periodo)
+    preregistros_carrera = preregistros_carrera_q\
+        .group_by(Carrera.id, Carrera.abreviatura, Carrera.nombre)\
+        .order_by(db.func.count(PreRegistro.id).desc()).all()
 
     # Tendencia de inscripciones por día
-    tendencia = db.session.query(
+    tendencia_q = db.session.query(
         db.func.date(PreRegistro.fecha_registro), db.func.count(PreRegistro.id)
-    ).group_by(db.func.date(PreRegistro.fecha_registro))\
-     .order_by(db.func.date(PreRegistro.fecha_registro)).all()
+    )
+    if periodo:
+        tendencia_q = tendencia_q.join(Servicio, Servicio.id == PreRegistro.servicio_id)\
+            .filter(Servicio.periodo == periodo)
+    tendencia = tendencia_q.group_by(db.func.date(PreRegistro.fecha_registro))\
+        .order_by(db.func.date(PreRegistro.fecha_registro)).all()
 
     # Distribución de estatus de asistencia
-    estatus_dist = db.session.query(
+    estatus_dist_q = db.session.query(
         AsistenciaFeria.estatus_asistencia, db.func.count(AsistenciaFeria.id)
-    ).group_by(AsistenciaFeria.estatus_asistencia).all()
+    )
+    if periodo:
+        estatus_dist_q = estatus_dist_q.filter(AsistenciaFeria.periodo == periodo)
+    estatus_dist = estatus_dist_q.group_by(AsistenciaFeria.estatus_asistencia).all()
 
     # Periodos disponibles
     periodos_disponibles = [p[0] for p in db.session.query(Servicio.periodo).distinct().order_by(Servicio.periodo).all()]
@@ -166,7 +186,12 @@ def get_stats():
 @role_required('Admin')
 def reporte_estudiantes():
     formato = request.args.get('formato', 'csv')
-    estudiantes = Estudiante.query.join(Carrera).join(Usuario).order_by(Estudiante.nombre_completo).all()
+    carrera = request.args.get('carrera', '').strip()
+
+    query = Estudiante.query.join(Carrera).join(Usuario).order_by(Estudiante.nombre_completo)
+    if carrera:
+        query = query.filter(Carrera.nombre.ilike(f'%{carrera}%'))
+    estudiantes = query.all()
 
     if formato == 'excel':
         try:
@@ -214,9 +239,24 @@ def reporte_estudiantes():
 @role_required('Admin')
 def reporte_preregistros():
     formato = request.args.get('formato', 'csv')
-    registros = PreRegistro.query.join(Estudiante).join(Servicio).join(
+    periodo = request.args.get('periodo', '').strip()
+    carrera = request.args.get('carrera', '').strip()
+    socio_formador = request.args.get('socio_formador', '').strip()
+    crn = request.args.get('crn', '').strip()
+
+    query = PreRegistro.query.join(Estudiante).join(Servicio).join(
         Carrera, Estudiante.carrera_id == Carrera.id
-    ).order_by(PreRegistro.fecha_registro.desc()).all()
+    )
+    if periodo:
+        query = query.filter(Servicio.periodo == periodo)
+    if carrera:
+        query = query.filter(Carrera.nombre.ilike(f'%{carrera}%'))
+    if crn:
+        query = query.filter(Servicio.crn.ilike(f'%{crn}%'))
+    if socio_formador:
+        query = query.join(SocioFormador, SocioFormador.id == Servicio.socio_formador_id)\
+            .filter(SocioFormador.nombre.ilike(f'%{socio_formador}%'))
+    registros = query.order_by(PreRegistro.fecha_registro.desc()).all()
 
     rows = []
     for r in registros:
@@ -319,6 +359,7 @@ def get_estudiantes():
             'nombre_completo': e.nombre_completo,
             'matricula': e.matricula,
             'carrera': e.carrera.nombre if e.carrera else '',
+            'carrera_id': e.carrera_id,
             'celular': e.celular or '',
             'correo_alterno': e.correo_alterno or '',
             'username': e.usuario.username if e.usuario else '',
@@ -335,7 +376,7 @@ def create_estudiante():
     username = data.get('username', '').strip()
     password = data.get('password', '')
     nombre = data.get('nombre_completo', '').strip()
-    matricula = data.get('matricula', '').strip()
+    matricula = data.get('matricula', '').strip().lower()
     carrera_id = data.get('carrera_id')
 
     if not all([username, password, nombre, matricula, carrera_id]):
@@ -369,6 +410,41 @@ def create_estudiante():
     db.session.commit()
 
     return jsonify({'id': estudiante.id, 'message': 'Estudiante creado'}), 201
+
+
+@admin_bp.route('/admin/estudiantes/<int:id>', methods=['PUT'])
+@role_required('Admin')
+def update_estudiante(id):
+    estudiante = Estudiante.query.get_or_404(id)
+    data = request.get_json()
+
+    if 'nombre_completo' in data:
+        nombre = data['nombre_completo'].strip()
+        if nombre:
+            estudiante.nombre_completo = nombre
+
+    if 'carrera_id' in data:
+        carrera_id = data['carrera_id']
+        if not Carrera.query.get(carrera_id):
+            return jsonify({'error': 'Carrera no válida'}), 400
+        estudiante.carrera_id = carrera_id
+
+    if 'celular' in data:
+        estudiante.celular = data['celular'].strip() or None
+
+    if 'correo_alterno' in data:
+        correo = data['correo_alterno'].strip() or None
+        if correo:
+            existing = Estudiante.query.filter(
+                Estudiante.correo_alterno == correo,
+                Estudiante.id != id
+            ).first()
+            if existing:
+                return jsonify({'error': 'El correo alterno ya está registrado'}), 409
+        estudiante.correo_alterno = correo
+
+    db.session.commit()
+    return jsonify({'message': 'Estudiante actualizado'})
 
 
 @admin_bp.route('/admin/estudiantes/<int:id>', methods=['DELETE'])
@@ -438,3 +514,88 @@ def delete_becario(id):
     db.session.delete(usuario)
     db.session.commit()
     return jsonify({'message': 'Becario eliminado'})
+
+
+# ═══════════════════════════════════════════
+#   GESTIÓN CARRERAS
+# ═══════════════════════════════════════════
+
+@admin_bp.route('/admin/carreras', methods=['GET'])
+@role_required('Admin')
+def get_carreras_admin():
+    carreras = Carrera.query.order_by(Carrera.nombre).all()
+    return jsonify([{'id': c.id, 'nombre': c.nombre, 'abreviatura': c.abreviatura} for c in carreras])
+
+
+@admin_bp.route('/admin/carreras', methods=['POST'])
+@role_required('Admin')
+def create_carrera():
+    data = request.get_json()
+    nombre = data.get('nombre', '').strip()
+    abreviatura = data.get('abreviatura', '').strip()
+
+    if not nombre or not abreviatura:
+        return jsonify({'error': 'Nombre y abreviatura son requeridos'}), 400
+
+    if Carrera.query.filter_by(nombre=nombre).first():
+        return jsonify({'error': 'Ya existe una carrera con ese nombre'}), 409
+
+    if Carrera.query.filter_by(abreviatura=abreviatura).first():
+        return jsonify({'error': 'Ya existe una carrera con esa abreviatura'}), 409
+
+    carrera = Carrera(nombre=nombre, abreviatura=abreviatura)
+    db.session.add(carrera)
+    db.session.commit()
+    return jsonify({'id': carrera.id, 'message': 'Carrera creada'}), 201
+
+
+@admin_bp.route('/admin/carreras/<int:id>', methods=['PUT'])
+@role_required('Admin')
+def update_carrera(id):
+    carrera = Carrera.query.get_or_404(id)
+    data = request.get_json()
+
+    if 'nombre' in data:
+        nombre = data['nombre'].strip()
+        if nombre and nombre != carrera.nombre:
+            if Carrera.query.filter(Carrera.nombre == nombre, Carrera.id != id).first():
+                return jsonify({'error': 'Ya existe una carrera con ese nombre'}), 409
+            carrera.nombre = nombre
+
+    if 'abreviatura' in data:
+        abreviatura = data['abreviatura'].strip()
+        if abreviatura and abreviatura != carrera.abreviatura:
+            if Carrera.query.filter(Carrera.abreviatura == abreviatura, Carrera.id != id).first():
+                return jsonify({'error': 'Ya existe una carrera con esa abreviatura'}), 409
+            carrera.abreviatura = abreviatura
+
+    db.session.commit()
+    return jsonify({'message': 'Carrera actualizada'})
+
+
+@admin_bp.route('/admin/carreras/<int:id>', methods=['DELETE'])
+@role_required('Admin')
+def delete_carrera(id):
+    carrera = Carrera.query.get_or_404(id)
+    if Estudiante.query.filter_by(carrera_id=carrera.id).first() is not None:
+        return jsonify({'error': 'No se puede eliminar: hay estudiantes asignados a esta carrera'}), 409
+    db.session.delete(carrera)
+    db.session.commit()
+    return jsonify({'message': 'Carrera eliminada'})
+
+
+# ═══════════════════════════════════════════
+#   REBOOT FERIA
+# ═══════════════════════════════════════════
+
+@admin_bp.route('/admin/reboot-feria', methods=['DELETE'])
+@role_required('Admin')
+def reboot_feria():
+    data = request.get_json()
+    periodo = data.get('periodo', '').strip()
+    if not periodo:
+        return jsonify({'error': 'El periodo es requerido'}), 400
+
+    deleted = AsistenciaFeria.query.filter_by(periodo=periodo).delete()
+    db.session.commit()
+    return jsonify({'message': f'Se eliminaron {deleted} registros de asistencia del periodo {periodo}', 'deleted': deleted})

@@ -60,6 +60,7 @@ export const serviciosAPI = {
 // ── Pre-registros ──
 export const preregistrosAPI = {
   getAll: (params) => api.get('/preregistros', { params }),
+  getPeriodos: () => api.get('/preregistros/periodos'),
   create: (data) => api.post('/preregistros', data),
   delete: (id) => api.delete(`/preregistros/${id}`),
 }
@@ -68,6 +69,7 @@ export const preregistrosAPI = {
 export const asistenciasAPI = {
   registrar: (data) => api.post('/asistencias-feria', data),
   actualizar: (id, data) => api.put(`/asistencias-feria/${id}`, data),
+  cancelar: (id) => api.delete(`/asistencias-feria/${id}`),
   validar: (id, data) => api.put(`/asistencias-feria/${id}/validar`, data),
   getDentro: () => api.get('/asistencias-feria/dentro'),
 }
@@ -76,8 +78,17 @@ export const asistenciasAPI = {
 export const gestionEstudiantesAPI = {
   getAll: (params) => api.get('/admin/estudiantes', { params }),
   create: (data) => api.post('/admin/estudiantes', data),
+  update: (id, data) => api.put(`/admin/estudiantes/${id}`, data),
   delete: (id) => api.delete(`/admin/estudiantes/${id}`),
   resetPassword: (id, data) => api.put(`/admin/usuarios/${id}/reset-password`, data),
+}
+
+// ── Carreras (Admin) ──
+export const carrerasAdminAPI = {
+  getAll: () => api.get('/admin/carreras'),
+  create: (data) => api.post('/admin/carreras', data),
+  update: (id, data) => api.put(`/admin/carreras/${id}`, data),
+  delete: (id) => api.delete(`/admin/carreras/${id}`),
 }
 
 // ── Gestión Becarios (Admin) ──
@@ -102,6 +113,7 @@ export const adminAPI = {
   getStats: (params) => api.get('/dashboard/stats', { params }),
   reporteEstudiantes: (params) => api.get('/reportes/estudiantes', { params, responseType: 'blob' }),
   reportePreregistros: (params) => api.get('/reportes/preregistros', { params, responseType: 'blob' }),
+  rebootFeria: (periodo) => api.delete('/admin/reboot-feria', { data: { periodo } }),
 }
 
 export default api
