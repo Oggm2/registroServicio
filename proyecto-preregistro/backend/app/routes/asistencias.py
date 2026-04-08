@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import Usuario, Estudiante, AsistenciaFeria, PreRegistro, Servicio
+from app.models import Usuario, Estudiante, AsistenciaFeria
 from app.middleware import role_required
 from datetime import date, datetime
 
@@ -44,15 +44,7 @@ def registrar_asistencia():
     if existente:
         return jsonify({'error': 'Ya tienes un registro de asistencia'}), 409
 
-    # I6: Validar que el estudiante tiene al menos un pre-registro activo
-    preregistro = PreRegistro.query.join(Servicio).filter(
-        PreRegistro.estudiante_id == user.estudiante.id
-    ).order_by(Servicio.periodo.desc()).first()
-    if not preregistro:
-        return jsonify({'error': 'Debes tener al menos un servicio inscrito para registrar asistencia'}), 400
-
-    # I7: Inferir periodo del pre-registro más reciente
-    periodo = data.get('periodo') or preregistro.servicio.periodo
+    periodo = data.get('periodo')
 
     asistencia = AsistenciaFeria(
         estudiante_id=user.estudiante.id,
