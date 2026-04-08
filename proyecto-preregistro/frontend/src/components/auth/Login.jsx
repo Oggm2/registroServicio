@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import {
-  HiOutlineAcademicCap,
-  HiOutlineClipboardDocumentList,
-  HiOutlineChartBarSquare,
-  HiOutlineShieldCheck,
-  HiOutlineExclamationTriangle,
-} from 'react-icons/hi2'
+import { HiOutlineExclamationTriangle } from 'react-icons/hi2'
 
 export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' })
@@ -50,24 +44,6 @@ export default function Login() {
           <img src="/images/teus_animado.png" alt="TEUS" className="auth-brand-image" />
           <h1>Sistema de Pre-Registro</h1>
           <p>Gestiona tus pre-registros a proyectos académicos y controla tu asistencia a ferias de forma sencilla.</p>
-        </div>
-        <div className="auth-features">
-          <div className="auth-feature">
-            <div className="auth-feature-icon"><HiOutlineAcademicCap /></div>
-            <span>Registro rápido a ferias académicas</span>
-          </div>
-          <div className="auth-feature">
-            <div className="auth-feature-icon"><HiOutlineClipboardDocumentList /></div>
-            <span>Pre-registro a servicios y proyectos</span>
-          </div>
-          <div className="auth-feature">
-            <div className="auth-feature-icon"><HiOutlineChartBarSquare /></div>
-            <span>Dashboard con estadísticas en tiempo real</span>
-          </div>
-          <div className="auth-feature">
-            <div className="auth-feature-icon"><HiOutlineShieldCheck /></div>
-            <span>Control de asistencia digitalizado</span>
-          </div>
         </div>
       </div>
 
