@@ -219,7 +219,6 @@ export default function GestionServicios() {
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>Nombre</th>
                       <th>Matrícula</th>
                       <th>Carrera</th>
                     </tr>
@@ -228,7 +227,6 @@ export default function GestionServicios() {
                     {inscritosList.map((est, idx) => (
                       <tr key={idx}>
                         <td className="text-muted">{idx + 1}</td>
-                        <td style={{ fontWeight: 500 }}>{est.nombre_completo}</td>
                         <td><span className="badge badge-navy">{est.matricula}</span></td>
                         <td className="text-muted">{est.carrera}</td>
                       </tr>
