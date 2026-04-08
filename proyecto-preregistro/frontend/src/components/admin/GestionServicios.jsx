@@ -221,6 +221,7 @@ export default function GestionServicios() {
                       <th>#</th>
                       <th>Matrícula</th>
                       <th>Carrera</th>
+                      <th>Fecha de registro</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -229,6 +230,7 @@ export default function GestionServicios() {
                         <td className="text-muted">{idx + 1}</td>
                         <td><span className="badge badge-navy">{est.matricula}</span></td>
                         <td className="text-muted">{est.carrera}</td>
+                        <td className="text-muted">{est.fecha_registro ? new Date(est.fecha_registro).toLocaleDateString('es-MX') : '—'}</td>
                       </tr>
                     ))}
                   </tbody>
