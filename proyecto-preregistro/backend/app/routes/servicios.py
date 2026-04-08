@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app import db
-from app.models import Servicio, PreRegistro, Estudiante, Carrera
+from app.models import Servicio, PreRegistro, Estudiante, Carrera, AsistenciaFeria
 from app.middleware import role_required
 
 servicios_bp = Blueprint('servicios', __name__)
@@ -106,6 +106,8 @@ def update_servicio(id):
 @role_required('Admin')
 def delete_servicio(id):
     servicio = Servicio.query.get_or_404(id)
+    AsistenciaFeria.query.filter_by(servicio_id=id).delete()
+    PreRegistro.query.filter_by(servicio_id=id).delete()
     db.session.delete(servicio)
     db.session.commit()
     return jsonify({'message': 'Servicio eliminado'})
