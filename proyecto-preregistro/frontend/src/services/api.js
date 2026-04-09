@@ -108,6 +108,12 @@ export const sociosFormadoresAPI = {
   getStats: () => api.get('/socios-formadores/stats'),
 }
 
+// ── Check-in QR ──
+export const checkinAPI = {
+  generarToken: (data) => api.post('/checkin/generar-token', data),
+  entrada: (data) => api.post('/checkin/entrada', data),
+}
+
 // ── Dashboard / Reportes ──
 export const adminAPI = {
   getStats: (params) => api.get('/dashboard/stats', { params }),
