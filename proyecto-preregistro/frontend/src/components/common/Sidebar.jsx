@@ -20,6 +20,7 @@ import {
   HiOutlineKey,
   HiOutlineXMark,
   HiOutlineListBullet,
+  HiOutlineQrCode,
 } from 'react-icons/hi2'
 import { authAPI } from '../../services/api'
 import toast from 'react-hot-toast'
@@ -54,6 +55,7 @@ const navByRole = {
       { to: '/inscritos-servicio', label: 'Inscritos por Servicio', icon: HiOutlineListBullet },
     ]},
     { section: 'Administración', items: [
+      { to: '/generar-qr', label: 'Generar QR Entrada', icon: HiOutlineQrCode },
       { to: '/gestion-servicios', label: 'Gestión Servicios', icon: HiOutlineCog6Tooth },
       { to: '/gestion-socios', label: 'Socios Formadores', icon: HiOutlineBuildingOffice2 },
       { to: '/gestion-estudiantes', label: 'Gestión Estudiantes', icon: HiOutlineAcademicCap },
