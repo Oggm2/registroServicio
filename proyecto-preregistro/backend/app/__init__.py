@@ -52,6 +52,7 @@ def create_app():
     from app.routes.asistencias import asistencias_bp
     from app.routes.admin import admin_bp
     from app.routes.socios_formadores import socios_bp
+    from app.routes.checkin import checkin_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(estudiantes_bp, url_prefix='/api/estudiantes')
@@ -60,5 +61,6 @@ def create_app():
     app.register_blueprint(asistencias_bp, url_prefix='/api/asistencias-feria')
     app.register_blueprint(admin_bp, url_prefix='/api')
     app.register_blueprint(socios_bp, url_prefix='/api/socios-formadores')
+    app.register_blueprint(checkin_bp, url_prefix='/api/checkin')
 
     return app

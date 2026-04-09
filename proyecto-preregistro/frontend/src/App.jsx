@@ -25,6 +25,9 @@ import InscribirServicio from './components/becario/InscribirServicio'
 import PreRegistros from './components/becario/PreRegistros'
 import InscritosServicio from './components/becario/InscritosServicio'
 
+// Public
+import CheckIn from './components/public/CheckIn'
+
 // Admin
 import Dashboard from './components/admin/Dashboard'
 import GestionServicios from './components/admin/GestionServicios'
@@ -35,6 +38,7 @@ import GestionBecarios from './components/admin/GestionBecarios'
 import Reportes from './components/admin/Reportes'
 import GestionCarreras from './components/admin/GestionCarreras'
 import MiPerfilAdmin from './components/admin/MiPerfilAdmin'
+import GenerarQR from './components/admin/GenerarQR'
 
 function RedirectByRole() {
   const { user } = useAuth()
@@ -52,6 +56,9 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+      {/* Check-in QR (público) */}
+      <Route path="/check-in" element={<CheckIn />} />
 
       {/* App (protegido) */}
       <Route path="/" element={
@@ -155,6 +162,11 @@ export default function App() {
         <Route path="mi-perfil-admin" element={
           <ProtectedRoute roles={['Admin']}>
             <MiPerfilAdmin />
+          </ProtectedRoute>
+        } />
+        <Route path="generar-qr" element={
+          <ProtectedRoute roles={['Admin']}>
+            <GenerarQR />
           </ProtectedRoute>
         } />
       </Route>
