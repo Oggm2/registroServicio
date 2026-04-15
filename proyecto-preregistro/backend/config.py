@@ -26,4 +26,4 @@ class Config:
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*')
 
     # Frontend URL para links en emails
-    FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
