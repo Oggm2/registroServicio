@@ -21,7 +21,7 @@ export default function CheckIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const mat = matricula.trim().toUpperCase()
+    const mat = matricula.trim().toLowerCase()
     if (!mat) {
       setError('Ingresa tu matrícula')
       return
@@ -118,7 +118,7 @@ export default function CheckIn() {
               onChange={(e) => { setError(''); setMatricula(e.target.value) }}
               autoFocus
               autoComplete="off"
-              style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '1.1rem' }}
+              style={{ letterSpacing: '0.05em', fontSize: '1.1rem' }}
             />
           </div>
 

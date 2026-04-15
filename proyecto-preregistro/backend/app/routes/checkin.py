@@ -62,7 +62,7 @@ def generar_token():
 @checkin_bp.route('/entrada', methods=['POST'])
 def registrar_entrada():
     data = request.get_json() or {}
-    matricula = data.get('matricula', '').strip().upper()
+    matricula = data.get('matricula', '').strip().lower()
     token = data.get('token', '').strip()
 
     if not matricula or not token:
