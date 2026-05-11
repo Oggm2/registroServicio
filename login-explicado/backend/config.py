@@ -9,7 +9,6 @@ load_dotenv()
 class Config:
     # SECRET_KEY: clave general de Flask (firmado de cookies, etc.)
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-
     # URI de la base de datos PostgreSQL.
     # Formato: postgresql://usuario:contraseña@host:puerto/nombre_db
     SQLALCHEMY_DATABASE_URI = os.getenv(
