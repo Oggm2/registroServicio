@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
@@ -88,10 +90,12 @@ def create_preregistro():
     if not servicio:
         return jsonify({'error': 'Servicio con ese CRN no encontrado'}), 404
 
-    # Verificar que el estudiante tenga asistencia registrada a la feria
+    # Verificar que el estudiante tenga asistencia registrada y esté dentro de la feria
     asistencia = AsistenciaFeria.query.filter_by(estudiante_id=estudiante_id).first()
     if not asistencia:
         return jsonify({'error': 'El estudiante debe tener asistencia registrada a la feria para inscribirse a un servicio'}), 400
+    if asistencia.estatus_asistencia != 'dentro':
+        return jsonify({'error': 'El estudiante debe estar dentro de la feria para inscribirse a un servicio'}), 400
 
     # Verificar cupo
     inscritos = PreRegistro.query.filter_by(servicio_id=servicio.id).count()
@@ -117,6 +121,10 @@ def create_preregistro():
 
     preregistro = PreRegistro(estudiante_id=estudiante_id, servicio_id=servicio.id)
     db.session.add(preregistro)
+
+    asistencia.estatus_asistencia = 'asistió'
+    asistencia.hora_salida = datetime.now()
+
     db.session.commit()
 
     return jsonify({'id': preregistro.id, 'message': 'Inscripción exitosa'}), 201
